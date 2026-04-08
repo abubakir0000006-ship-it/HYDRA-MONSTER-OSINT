@@ -2,73 +2,144 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT v7.0 [PRIVATE]</title>
+    <title>HYDRA OSINT | TIUE TERM</title>
     <style>
-        :root { --neon: #ff003c; --text: #0f0; }
-        body { background: #000; color: var(--text); font-family: 'Courier New', monospace; text-align: center; margin: 0; }
-        .box { border: 2px solid var(--neon); background: rgba(0,0,0,0.9); padding: 30px; width: 400px; margin: 100px auto; box-shadow: 0 0 20px var(--neon); }
-        input { background: #111; border: 1px solid var(--neon); color: var(--text); padding: 10px; margin: 10px 0; width: 90%; }
-        button { background: var(--neon); color: #fff; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; width: 95%; }
-        #main-ui, #admin-ui { display: none; padding: 20px; }
-        .user-row { border-bottom: 1px solid #333; padding: 5px; color: yellow; }
+        :root { --green: #00ff41; --red: #ff003c; --bg: #010a0f; --card-bg: #021117; }
+        body { background: var(--bg); color: var(--green); font-family: 'Courier New', monospace; margin: 0; padding: 20px; text-transform: uppercase; }
+        
+        /* Экран входа */
+        #auth-box { border: 1px solid var(--green); background: var(--card-bg); width: 350px; margin: 100px auto; padding: 20px; text-align: center; }
+        .auth-btn { background: var(--green); color: #000; border: none; padding: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+
+        /* Сетка как на фото */
+        #main-ui { display: none; max-width: 900px; margin: auto; }
+        .system-title { color: var(--green); font-size: 24px; letter-spacing: 10px; margin-bottom: 30px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .card { border: 1px solid #1a3a3a; padding: 15px; background: rgba(2, 17, 23, 0.8); position: relative; }
+        .card-label { color: var(--red); font-size: 10px; margin-bottom: 10px; display: block; }
+        
+        .input-row { display: flex; gap: 0; border: 1px solid var(--green); }
+        input { background: transparent; border: none; color: var(--green); padding: 10px; flex-grow: 1; outline: none; font-family: inherit; }
+        
+        .btn { background: var(--green); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; min-width: 80px; }
+        .btn-red { background: var(--red); color: #fff; }
+        .btn-blue { background: #0066ff; color: #fff; width: 100%; margin-top: 10px; }
+
+        /* Терминал вывода */
+        #display { border: 1px solid var(--green); background: #000; margin-top: 30px; padding: 20px; min-height: 250px; font-size: 14px; overflow-y: auto; }
+        
+        #admin-ui { display: none; }
+        .user-log { color: yellow; border-bottom: 1px solid #222; padding: 5px; }
     </style>
 </head>
 <body>
 
-<div id="auth-box" class="box">
-    <h2 style="color:var(--neon)">ACCESS RESTRICTED</h2>
-    <input type="text" id="user" placeholder="USERNAME">
-    <input type="password" id="pass" placeholder="PASSWORD">
-    <button onclick="auth('login')">LOGIN</button>
-    <button onclick="auth('register')" style="margin-top:5px; background:#333;">REGISTER</button>
-    <p id="auth-msg"></p>
+<div id="auth-box">
+    <h2 style="color:var(--red)">// ACCESS REQUIRED</h2>
+    <input type="text" id="user" placeholder="LOGIN" style="width:80%; margin-bottom:10px; border: 1px solid var(--green);">
+    <input type="password" id="pass" placeholder="PASS" style="width:80%; margin-bottom:10px; border: 1px solid var(--green);">
+    <button class="auth-btn" onclick="auth('login')">ENTER SYSTEM</button>
+    <button class="auth-btn" onclick="auth('register')" style="background:#111; color:var(--green); border:1px solid var(--green);">REGISTER</button>
 </div>
 
 <div id="main-ui">
-    <h1 style="color:var(--neon)">WELCOME TO HYDRA, <span id="u-name"></span></h1>
-    <div class="box" style="margin: 20px auto; width: 600px;">
-        <input type="text" id="target" placeholder="TARGET IP / NICK">
-        <button onclick="scan('ip')">IP TRACE</button>
-        <button onclick="scan('nick')" style="margin-top:5px;">NICK SCAN</button>
-        <button id="admin-btn" onclick="openAdmin()" style="display:none; margin-top:20px; background:blue;">OPEN ADMIN PANEL</button>
-        <div id="res" style="margin-top:20px; text-align:left;"></div>
+    <div class="system-title">HYDRA SYSTEM</div>
+
+    <div class="grid">
+        <div class="card">
+            <span class="card-label">// ШЕРЛОК (НИКНЕЙМ)</span>
+            <div class="input-row">
+                <input type="text" id="target-nick" placeholder="Логин...">
+                <button class="btn" onclick="scan('nick')">ПОИСК</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="card-label">// ГЛОБАЛЬНЫЙ ПРОБИВ НОМЕРА</span>
+            <div class="input-row">
+                <input type="text" id="target-phone" placeholder="+998...">
+                <button class="btn" onclick="scan('mail')">ИНФО</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="card-label">// ТРАССИРОВКА IP</span>
+            <div class="input-row">
+                <input type="text" id="target-ip" placeholder="8.8.8.8">
+                <button class="btn" onclick="scan('ip')">СЛЕДИТЬ</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <span class="card-label">// CRYPTO / ADMIN CONTROL</span>
+            <div class="input-row">
+                <input type="text" id="target-crypto" placeholder="BTC Address...">
+                <button class="btn btn-red" onclick="scan('crypto')">CHECK</button>
+            </div>
+            <button id="admin-btn" class="btn-blue" style="display:none" onclick="openAdmin()">АДМИН ПАНЕЛЬ</button>
+        </div>
+    </div>
+
+    <div id="display">
+        > Жду команду ...
     </div>
 </div>
 
-<div id="admin-ui">
-    <h2 style="color:blue">ADMIN: USER MONITOR</h2>
-    <div id="user-list" class="box" style="width:500px;"></div>
-    <button onclick="location.reload()">BACK</button>
+<div id="admin-ui" class="card" style="max-width:600px; margin:50px auto;">
+    <h2 style="color:var(--green)">DATABASE MONITOR</h2>
+    <div id="user-list"></div>
+    <button class="btn" onclick="location.reload()" style="margin-top:20px;">BACK</button>
 </div>
 
 <script>
+    let activeUser = "";
+
     async function auth(type) {
         const u = document.getElementById('user').value;
         const p = document.getElementById('pass').value;
-        const res = await fetch(`/api/${type}`, {
+        const r = await fetch(`/api/${type}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({username: u, password: p})
         });
-        const data = await res.json();
-        if(data.status === 'success') {
-            if(type === 'login') showMain(u);
-            else alert('Registered! Now Login.');
-        } else { document.getElementById('auth-msg').innerText = data.message; }
-    }
-
-    function showMain(name) {
-        document.getElementById('auth-box').style.display = 'none';
-        document.getElementById('main-ui').style.display = 'block';
-        document.getElementById('u-name').innerText = name;
-        if(name === 'abu') document.getElementById('admin-btn').style.display = 'block';
+        const d = await r.json();
+        if(d.status === 'success') {
+            if(type === 'login') {
+                activeUser = u;
+                document.getElementById('auth-box').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'block';
+                if(u === 'abu') document.getElementById('admin-btn').style.display = 'block';
+            } else alert('Registered!');
+        } else alert(d.message);
     }
 
     async function scan(mode) {
-        const t = document.getElementById('target').value;
-        const r = await fetch(`/api/${mode}?target=${t}`);
-        const d = await r.json();
-        document.getElementById('res').innerText = JSON.stringify(d, null, 2);
+        let val = "";
+        if(mode === 'nick') val = document.getElementById('target-nick').value;
+        if(mode === 'ip') val = document.getElementById('target-ip').value;
+        if(mode === 'crypto') val = document.getElementById('target-crypto').value;
+        if(mode === 'mail') val = document.getElementById('target-phone').value;
+
+        const disp = document.getElementById('display');
+        disp.innerHTML += `<br>> Запрос к /${mode}_global ...<br>{<br>`;
+
+        try {
+            const r = await fetch(`/api/${mode}?target=${val}`);
+            const j = await r.json();
+            
+            if(mode === 'ip') {
+                disp.innerHTML += `  "Город": "${j.city}",<br>  "Страна": "${j.country}",<br>  "ISP": "${j.isp}"`;
+            } else if(mode === 'nick') {
+                j.found.forEach(s => disp.innerHTML += `  "${s.name}": "${s.url}",<br>`);
+            } else if(mode === 'crypto') {
+                disp.innerHTML += `  "Balance": "${j.balance}",<br>  "TXs": "${j.txs}"`;
+            } else {
+                disp.innerHTML += `  "Status": "Active",<br>  "Info": "Target Locked"`;
+            }
+            disp.innerHTML += `<br>}`;
+        } catch(e) { disp.innerHTML += `  "Error": "Connection lost"<br>}`; }
+        disp.scrollTop = disp.scrollHeight;
     }
 
     async function openAdmin() {
@@ -77,9 +148,9 @@
         const res = await fetch('/api/admin/users');
         const users = await res.json();
         const list = document.getElementById('user-list');
-        list.innerHTML = '<b>ID | USERNAME | PASSWORD</b><br>';
+        list.innerHTML = "";
         users.forEach(u => {
-            list.innerHTML += `<div class="user-row">${u.id} | ${u.username} | ${u.password}</div>`;
+            list.innerHTML += `<div class="user-log">ID: ${u.id} | LOG: ${u.username} | PASS: ${u.password}</div>`;
         });
     }
 </script>
