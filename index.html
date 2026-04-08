@@ -2,34 +2,37 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT v3.0 [MAPS EDITION]</title>
+    <title>HYDRA OSINT v4.0 [ULTRA]</title>
     <style>
         body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 10px; text-align: center; }
-        .terminal { border: 2px solid #ff003c; background: rgba(10,0,0,0.9); max-width: 800px; margin: auto; padding: 20px; box-shadow: 0 0 30px #ff003c; }
-        select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 10px; margin: 5px; outline: none; }
-        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; width: 120px; transition: 0.3s; }
-        button:hover { background: #fff; color: #000; }
-        #display { text-align: left; height: auto; min-height: 200px; border-top: 1px solid #333; margin-top: 20px; padding: 10px; font-size: 13px; }
-        #map-container { margin-top: 15px; display: none; border: 1px solid #ff003c; }
-        img { max-width: 100%; height: auto; }
-        .h { color: #ff003c; font-weight: bold; font-size: 22px; text-shadow: 0 0 10px #ff003c; }
+        .terminal { border: 2px solid #ff003c; background: rgba(5,0,0,0.95); max-width: 850px; margin: auto; padding: 25px; box-shadow: 0 0 40px #ff003c; border-radius: 5px; }
+        select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 12px; margin: 5px; outline: none; border-radius: 3px; }
+        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; width: 130px; }
+        button:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+        #display { text-align: left; min-height: 250px; border-top: 1px solid #333; margin-top: 20px; padding: 15px; font-size: 14px; line-height: 1.6; }
+        .link-item { display: block; padding: 5px; border-bottom: 1px solid #111; text-decoration: none; color: #0f0; transition: 0.2s; }
+        .link-item:hover { background: #111; color: #ff003c; padding-left: 15px; }
+        #map-container { margin-top: 15px; display: none; border: 1px solid #ff003c; border-radius: 5px; overflow: hidden; }
+        .h { color: #ff003c; font-weight: bold; font-size: 26px; letter-spacing: 3px; }
+        .tag { color: #ff003c; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="terminal">
-        <div class="h">☠️ HYDRA OSINT MONSTER v3.0 ☠️</div>
-        <div style="margin-bottom:15px;">[ STATUS: SATELLITE LINK ACTIVE ]</div>
-        <select id="mode">
-            <option value="ip">GEOLOCATION (IP)</option>
-            <option value="nick">SHERLOCK (NICK)</option>
-            <option value="mail">MAIL BREACH</option>
-        </select>
-        <input type="text" id="target" placeholder="Введите цель..." style="width: 250px;">
-        <button onclick="run()">EXECUTE</button>
+        <div class="h">☠️ HYDRA OSINT MONSTER v4.0 ☠️</div>
+        <div style="margin: 10px 0; color: #444;">[ MULTI-THREADING SCANNER ENABLED ]</div>
         
-        <div id="display">> [READY] Ожидание цели...</div>
+        <select id="mode">
+            <option value="nick">USER SEARCH (SHERLOCK)</option>
+            <option value="ip">GEOLOCATION (IP)</option>
+            <option value="mail">DATA BREACH (EMAIL)</option>
+        </select>
+        <input type="text" id="target" placeholder="Введите цель..." style="width: 280px;">
+        <button onclick="run()">SCAN NOW</button>
+        
+        <div id="display">> СИСТЕМА ГОТОВА К ПРОБИВУ...</div>
         <div id="map-container">
-            <img id="map-img" src="" alt="Target Map Location">
+            <img id="map-img" src="" alt="Target Location" style="width:100%;">
         </div>
     </div>
     <script>
@@ -38,28 +41,27 @@
             const t = document.getElementById('target').value;
             const d = document.getElementById('display');
             const mapCont = document.getElementById('map-container');
-            const mapImg = document.getElementById('map-img');
-
             if(!t) return;
-            d.innerHTML = `<span style="color:#ff003c">> INITIATING ${m.toUpperCase()} PROTOCOL...</span>`;
+            d.innerHTML = `<span style="color:#ff003c">> ЗАПУСК МОДУЛЯ ${m.toUpperCase()} ДЛЯ: ${t}</span><br>`;
             mapCont.style.display = "none";
 
             try {
                 const r = await fetch(`/api/${m}?target=${t}`);
                 const j = await r.json();
                 
-                if(m==='ip' && j.status !== 'fail') {
-                    d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] СТРАНА: ${j.country}<br>[+] КООРДИНАТЫ: ${j.lat}, ${j.lon}`;
-                    // Добавляем карту через OpenStreetMap (бесплатно и без ключей)
-                    const zoom = 12;
-                    mapImg.src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=${zoom}&l=sat,skl`;
+                if(m === 'nick') {
+                    d.innerHTML += `<br><span class="tag">[!] ОБНАРУЖЕНЫ СЛЕДУЮЩИЕ СВЯЗИ:</span><br>`;
+                    j.found.forEach(s => {
+                        d.innerHTML += `<a href="${s.url}" target="_blank" class="link-item">🔗 ${s.name}: ${s.url}</a>`;
+                    });
+                } else if(m === 'ip' && j.status !== 'fail') {
+                    d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] ПРОВАЙДЕР: ${j.isp}<br>[+] КООРДИНАТЫ: ${j.lat}, ${j.lon}`;
+                    document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
                     mapCont.style.display = "block";
-                } else if(m==='nick') {
-                    j.found.forEach(s => d.innerHTML += `<br>[+] ${s.name}: <a href="${s.url}" target="_blank" style="color:yellow">${s.url}</a>`);
                 } else {
-                    d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks || 'Данные не найдены'}`;
+                    d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks || 'Ничего не найдено'}`;
                 }
-            } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ERROR: Connection Lost</span>`; }
+            } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ОШИБКА СЕТИ</span>`; }
         }
     </script>
 </body>
