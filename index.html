@@ -27,6 +27,7 @@
         .copy-btn:active { background: var(--green); color: #000; }
 
         #map-container { margin-top: 15px; display: none; border: 1px solid var(--green); }
+.hist-item { font-size: 11px; color: #888; border-bottom: 1px solid #1a3a3a; padding: 3px; }
     </style>
 </head>
 <body>
@@ -110,6 +111,7 @@
         try {
             const r = await fetch(`/api/${mode}?target=${val}`);
             const j = await r.json();
+loadHistory();
             if(mode === 'ip') {
                 disp.innerHTML += `<div class="res-item"><span>CITY: ${j.city}</span><button class="copy-btn" onclick="copyToClipboard('${j.city}')">COPY</button></div>`;
                 document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=12&l=sat,skl`;
@@ -132,6 +134,7 @@
         disp.innerHTML = "> АНАЛИЗ МЕТАДАННЫХ...";
         const r = await fetch('/api/photo', {method:'POST', body:formData});
         const j = await r.json();
+loadHistory();
         if(j.status==='success') {
             const coords = `${j.lat}, ${j.lon}`;
             disp.innerHTML = `> КООРДИНАТЫ: ${coords} <button class="copy-btn" onclick="copyToClipboard('${coords}')">COPY GPS</button>`;
