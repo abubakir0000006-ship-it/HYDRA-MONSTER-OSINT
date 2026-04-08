@@ -145,6 +145,17 @@
         const users = await res.json();
         document.getElementById('display').innerHTML = users.map(u => `<div class="res-item"><span>${u.username}:${u.password}</span><button class="copy-btn" onclick="copyToClipboard('${u.username}:${u.password}')">COPY</button></div>`).join('');
     }
+async function downloadPDF() { 
+    const r = await fetch("/api/generate_pdf", { 
+        method: "POST", 
+        headers: {"Content-Type": "application/json"}, 
+        body: JSON.stringify({target: window.lastTarget, results: window.lastResults}) 
+    }); 
+    const b = await r.blob(); 
+    const u = window.URL.createObjectURL(b); 
+    const a = document.createElement("a"); 
+    a.href = u; a.download = "dossier.pdf"; a.click(); 
+}
 </script>
 </body>
 </html>
