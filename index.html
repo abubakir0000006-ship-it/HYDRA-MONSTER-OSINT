@@ -2,145 +2,86 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT v6.0 [HACKER EDITION]</title>
+    <title>HYDRA OSINT v7.0 [PRIVATE]</title>
     <style>
-        :root { --neon: #ff003c; --bg: #000; --text: #0f0; --dim: #330006; }
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        
-        /* Хакерский фон с анимацией Матрицы */
-        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: -1; opacity: 0.2; }
-
-        /* Экран Входа */
-        #intro { text-align: center; }
-        .glitch { font-size: 50px; color: var(--neon); font-weight: bold; text-transform: uppercase; letter-spacing: 5px; text-shadow: 0 0 20px var(--neon); animation: glitch 1s infinite; }
-        .start-btn { background: transparent; border: 3px solid var(--neon); color: var(--neon); padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.3s; box-shadow: 0 0 15px var(--neon); }
-        .start-btn:hover { background: var(--neon); color: #fff; box-shadow: 0 0 30px #fff; }
-
-        /* Главный Терминал */
-        #main-terminal { display: none; width: 90%; max-width: 900px; border: 2px solid var(--neon); background: rgba(0,0,0,0.9); padding: 30px; box-shadow: 0 0 40px var(--dim); }
-        .h { color: var(--neon); font-size: 30px; font-weight: bold; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px var(--neon); }
-        
-        /* Панель функций (Отдельные кнопки) */
-        .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
-        .tool-card { background: #111; border: 1px solid #333; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .tool-card:hover, .tool-card.active { border-color: var(--neon); background: #1a0004; box-shadow: 0 0 15px var(--neon); }
-        .tool-icon { font-size: 30px; color: var(--neon); margin-bottom: 10px; }
-        .tool-name { font-weight: bold; color: var(--text); }
-
-        /* Ввод и Вывод */
-        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        input { background: #111; border: 1px solid #333; color: var(--text); padding: 15px; flex-grow: 1; outline: none; border-radius: 3px; }
-        input:focus { border-color: var(--neon); }
-        button#exec-btn { background: var(--neon); color: #fff; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; }
-        button#exec-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
-
-        #display { background: #050505; border: 1px solid #222; padding: 20px; min-height: 200px; text-align: left; }
-        .link-item { display: block; color: var(--text); text-decoration: none; padding: 5px; border-bottom: 1px solid #111; }
-        .link-item:hover { color: yellow; background: #111; }
-        #map-container { margin-top: 15px; display: none; border: 2px solid var(--neon); max-height: 300px; overflow: hidden; }
-
-        @keyframes glitch { 0% { text-shadow: 2px 0 red, -2px 0 blue; } 50% { text-shadow: -2px 0 red, 2px 0 blue; } 100% { text-shadow: 2px 0 red, -2px 0 blue; } }
+        :root { --neon: #ff003c; --text: #0f0; }
+        body { background: #000; color: var(--text); font-family: 'Courier New', monospace; text-align: center; margin: 0; }
+        .box { border: 2px solid var(--neon); background: rgba(0,0,0,0.9); padding: 30px; width: 400px; margin: 100px auto; box-shadow: 0 0 20px var(--neon); }
+        input { background: #111; border: 1px solid var(--neon); color: var(--text); padding: 10px; margin: 10px 0; width: 90%; }
+        button { background: var(--neon); color: #fff; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; width: 95%; }
+        #main-ui, #admin-ui { display: none; padding: 20px; }
+        .user-row { border-bottom: 1px solid #333; padding: 5px; color: yellow; }
     </style>
 </head>
 <body>
 
-<canvas id="matrix"></canvas>
-
-<div id="intro">
-    <div class="glitch">HYDRA_OSINT</div>
-    <div style="color:#666;">> System Ready. Connection: Secure.</div>
-    <button class="start-btn" onclick="startSystem()">START OSINT PROTOCOL</button>
+<div id="auth-box" class="box">
+    <h2 style="color:var(--neon)">ACCESS RESTRICTED</h2>
+    <input type="text" id="user" placeholder="USERNAME">
+    <input type="password" id="pass" placeholder="PASSWORD">
+    <button onclick="auth('login')">LOGIN</button>
+    <button onclick="auth('register')" style="margin-top:5px; background:#333;">REGISTER</button>
+    <p id="auth-msg"></p>
 </div>
 
-<div id="main-terminal">
-    <div class="h">☠️ HYDRA MULTI-HEAD MONSTER ☠️</div>
-    
-    <div class="tools-grid">
-        <div class="tool-card active" onclick="setMode('nick', this)">
-            <div class="tool-icon">👤</div>
-            <div class="tool-name">USER SEARCH<br>(SHERLOCK)</div>
-        </div>
-        <div class="tool-card" onclick="setMode('ip', this)">
-            <div class="tool-icon">🌐</div>
-            <div class="tool-name">GEOLOCATION<br>(IP TRACER)</div>
-        </div>
-        <div class="tool-card" onclick="setMode('crypto', this)">
-            <div class="tool-icon">💰</div>
-            <div class="tool-name">CRYPTO CHECK<br>(BTC)</div>
-        </div>
-        <div class="tool-card" onclick="setMode('mail', this)">
-            <div class="tool-icon">📧</div>
-            <div class="tool-name">DATA BREACH<br>(EMAIL)</div>
-        </div>
+<div id="main-ui">
+    <h1 style="color:var(--neon)">WELCOME TO HYDRA, <span id="u-name"></span></h1>
+    <div class="box" style="margin: 20px auto; width: 600px;">
+        <input type="text" id="target" placeholder="TARGET IP / NICK">
+        <button onclick="scan('ip')">IP TRACE</button>
+        <button onclick="scan('nick')" style="margin-top:5px;">NICK SCAN</button>
+        <button id="admin-btn" onclick="openAdmin()" style="display:none; margin-top:20px; background:blue;">OPEN ADMIN PANEL</button>
+        <div id="res" style="margin-top:20px; text-align:left;"></div>
     </div>
+</div>
 
-    <div class="input-group">
-        <input type="text" id="target" placeholder="Введите цель (Nick, IP, BTC Address, Email)...">
-        <button id="exec-btn" onclick="run()">EXECUTE</button>
-    </div>
-
-    <div id="display">> SYSTEM ONLINE. STANDING BY...</div>
-    <div id="map-container"><img id="map-img" src="" style="width:100%;"></div>
+<div id="admin-ui">
+    <h2 style="color:blue">ADMIN: USER MONITOR</h2>
+    <div id="user-list" class="box" style="width:500px;"></div>
+    <button onclick="location.reload()">BACK</button>
 </div>
 
 <script>
-    let currentMode = 'nick';
-
-    function startSystem() {
-        document.getElementById('intro').style.display = 'none';
-        document.getElementById('main-terminal').style.display = 'block';
+    async function auth(type) {
+        const u = document.getElementById('user').value;
+        const p = document.getElementById('pass').value;
+        const res = await fetch(`/api/${type}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: u, password: p})
+        });
+        const data = await res.json();
+        if(data.status === 'success') {
+            if(type === 'login') showMain(u);
+            else alert('Registered! Now Login.');
+        } else { document.getElementById('auth-msg').innerText = data.message; }
     }
 
-    function setMode(mode, element) {
-        currentMode = mode;
-        document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
-        element.classList.add('active');
-        document.getElementById('target').placeholder = `Введите цель для ${mode.toUpperCase()}...`;
+    function showMain(name) {
+        document.getElementById('auth-box').style.display = 'none';
+        document.getElementById('main-ui').style.display = 'block';
+        document.getElementById('u-name').innerText = name;
+        if(name === 'abu') document.getElementById('admin-btn').style.display = 'block';
     }
 
-    async function run() {
+    async function scan(mode) {
         const t = document.getElementById('target').value;
-        const d = document.getElementById('display');
-        const mapCont = document.getElementById('map-container');
-        if(!t) return;
-        d.innerHTML = `<span style="color:#ff003c">> INITING ${currentMode.toUpperCase()} SCAN ON: ${t}...</span><br>`;
-        mapCont.style.display = "none";
-        try {
-            const r = await fetch(`/api/${currentMode}?target=${t}`);
-            const j = await r.json();
-            if(currentMode === 'nick') {
-                j.found.forEach(s => d.innerHTML += `<a href="${s.url}" target="_blank" class="link-item">🔗 ${s.name}: ${s.url}</a>`);
-            } else if(currentMode === 'ip') {
-                d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] ПРОВАЙДЕР: ${j.isp}`;
-                document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
-                mapCont.style.display = "block";
-            } else if(currentMode === 'crypto') {
-                d.innerHTML += `<br>[+] БАЛАНС: <span style="color:yellow">${j.balance}</span><br>[+] ТРАНЗАКЦИИ: ${j.txs}`;
-            } else { d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks}`; }
-        } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ERROR</span>`; }
+        const r = await fetch(`/api/${mode}?target=${t}`);
+        const d = await r.json();
+        document.getElementById('res').innerText = JSON.stringify(d, null, 2);
     }
 
-    // Матрица на фоне
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789☠️🌐';
-    const drops = [];
-    for (let i = 0; i < canvas.width / 20; i++) drops[i] = 1;
-    function drawMatrix() {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#0f0';
-        for (let i = 0; i < drops.length; i++) {
-            const text = letters[Math.floor(Math.random() * letters.length)];
-            ctx.fillText(text, i * 20, drops[i] * 20);
-            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
+    async function openAdmin() {
+        document.getElementById('main-ui').style.display = 'none';
+        document.getElementById('admin-ui').style.display = 'block';
+        const res = await fetch('/api/admin/users');
+        const users = await res.json();
+        const list = document.getElementById('user-list');
+        list.innerHTML = '<b>ID | USERNAME | PASSWORD</b><br>';
+        users.forEach(u => {
+            list.innerHTML += `<div class="user-row">${u.id} | ${u.username} | ${u.password}</div>`;
+        });
     }
-    setInterval(drawMatrix, 50);
 </script>
-
 </body>
 </html>
