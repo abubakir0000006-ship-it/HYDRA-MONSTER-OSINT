@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>HYDRA OSINT MONSTER</title>
+    <style>
+        body { background: #000; color: #ff003c; font-family: 'Courier New', monospace; margin: 0; text-align: center; }
+        .box { border: 2px solid #ff003c; padding: 20px; margin: 10% auto; width: 80%; max-width: 500px; box-shadow: 0 0 20px #ff003c; }
+        input { background: transparent; border: 1px solid #ff003c; color: #0f0; padding: 10px; width: 80%; outline: none; }
+        button { background: #ff003c; border: none; color: #fff; padding: 10px; cursor: pointer; margin-top: 10px; width: 85%; font-weight: bold; }
+        #log { color: #0f0; font-size: 12px; margin-top: 20px; text-align: left; padding: 10px; border-top: 1px solid #333; height: 100px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>HYDRA MONSTER OSINT</h1>
+        <p>ENTER IP TARGET</p>
+        <input type="text" id="target" placeholder="8.8.8.8">
+        <button onclick="scan()">RUN TRACER</button>
+        <div id="log">> SYSTEM READY...</div>
+    </div>
+    <script>
+        async function scan() {
+            const val = document.getElementById('target').value;
+            const log = document.getElementById('log');
+            log.innerHTML += `<br>> TRACING: ${val}...`;
+            const res = await fetch(`/api/ip?target=${val}`);
+            const data = await res.json();
+            log.innerHTML += `<br>> RESULT: ${data.city || 'NOT FOUND'}, ${data.country || ''} [${data.isp || ''}]`;
+        }
+    </script>
+</body>
+</html>
