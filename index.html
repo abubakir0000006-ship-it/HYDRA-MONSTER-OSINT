@@ -2,38 +2,36 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT v4.0 [ULTRA]</title>
+    <title>HYDRA OSINT v5.0 [GOD MODE]</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 10px; text-align: center; }
-        .terminal { border: 2px solid #ff003c; background: rgba(5,0,0,0.95); max-width: 850px; margin: auto; padding: 25px; box-shadow: 0 0 40px #ff003c; border-radius: 5px; }
-        select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 12px; margin: 5px; outline: none; border-radius: 3px; }
-        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; width: 130px; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 10px; }
+        .terminal { border: 2px solid #ff003c; background: rgba(5,0,0,0.95); max-width: 900px; margin: 20px auto; padding: 25px; box-shadow: 0 0 50px #ff003c; }
+        .h { color: #ff003c; font-size: 28px; font-weight: bold; text-align: center; text-shadow: 0 0 15px #ff003c; margin-bottom: 10px; }
+        .nav { text-align: center; margin-bottom: 20px; }
+        select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 12px; margin: 5px; outline: none; }
+        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; width: 140px; transition: 0.3s; }
         button:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
-        #display { text-align: left; min-height: 250px; border-top: 1px solid #333; margin-top: 20px; padding: 15px; font-size: 14px; line-height: 1.6; }
-        .link-item { display: block; padding: 5px; border-bottom: 1px solid #111; text-decoration: none; color: #0f0; transition: 0.2s; }
-        .link-item:hover { background: #111; color: #ff003c; padding-left: 15px; }
-        #map-container { margin-top: 15px; display: none; border: 1px solid #ff003c; border-radius: 5px; overflow: hidden; }
-        .h { color: #ff003c; font-weight: bold; font-size: 26px; letter-spacing: 3px; }
-        .tag { color: #ff003c; font-weight: bold; }
+        #display { background: #050505; border-top: 1px solid #333; padding: 20px; min-height: 300px; text-align: left; line-height: 1.6; }
+        .link-item { display: block; padding: 8px; border-bottom: 1px solid #111; text-decoration: none; color: #0f0; }
+        .link-item:hover { background: #1a0004; color: #ff003c; }
+        #map-container { margin-top: 15px; display: none; border: 2px solid #ff003c; }
     </style>
 </head>
 <body>
     <div class="terminal">
-        <div class="h">☠️ HYDRA OSINT MONSTER v4.0 ☠️</div>
-        <div style="margin: 10px 0; color: #444;">[ MULTI-THREADING SCANNER ENABLED ]</div>
-        
-        <select id="mode">
-            <option value="nick">USER SEARCH (SHERLOCK)</option>
-            <option value="ip">GEOLOCATION (IP)</option>
-            <option value="mail">DATA BREACH (EMAIL)</option>
-        </select>
-        <input type="text" id="target" placeholder="Введите цель..." style="width: 280px;">
-        <button onclick="run()">SCAN NOW</button>
-        
-        <div id="display">> СИСТЕМА ГОТОВА К ПРОБИВУ...</div>
-        <div id="map-container">
-            <img id="map-img" src="" alt="Target Location" style="width:100%;">
+        <div class="h">☠️ HYDRA OSINT MONSTER v5.0 ☠️</div>
+        <div class="nav">
+            <select id="mode">
+                <option value="nick">USER SEARCH (SHERLOCK)</option>
+                <option value="ip">GEOLOCATION (IP)</option>
+                <option value="crypto">CRYPTO CHECKER (BTC)</option>
+                <option value="mail">DATA BREACH (EMAIL)</option>
+            </select>
+            <input type="text" id="target" placeholder="Введите цель..." style="width: 300px;">
+            <button onclick="run()">EXECUTE</button>
         </div>
+        <div id="display">> SYSTEM READY. STANDING BY...</div>
+        <div id="map-container"><img id="map-img" src="" style="width:100%;"></div>
     </div>
     <script>
         async function run() {
@@ -42,26 +40,23 @@
             const d = document.getElementById('display');
             const mapCont = document.getElementById('map-container');
             if(!t) return;
-            d.innerHTML = `<span style="color:#ff003c">> ЗАПУСК МОДУЛЯ ${m.toUpperCase()} ДЛЯ: ${t}</span><br>`;
+            d.innerHTML = `<span style="color:#ff003c">> LOADING MODULE: ${m.toUpperCase()}...</span><br>`;
             mapCont.style.display = "none";
-
             try {
                 const r = await fetch(`/api/${m}?target=${t}`);
                 const j = await r.json();
-                
                 if(m === 'nick') {
-                    d.innerHTML += `<br><span class="tag">[!] ОБНАРУЖЕНЫ СЛЕДУЮЩИЕ СВЯЗИ:</span><br>`;
-                    j.found.forEach(s => {
-                        d.innerHTML += `<a href="${s.url}" target="_blank" class="link-item">🔗 ${s.name}: ${s.url}</a>`;
-                    });
-                } else if(m === 'ip' && j.status !== 'fail') {
-                    d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] ПРОВАЙДЕР: ${j.isp}<br>[+] КООРДИНАТЫ: ${j.lat}, ${j.lon}`;
+                    j.found.forEach(s => d.innerHTML += `<a href="${s.url}" target="_blank" class="link-item">🔗 ${s.name}: ${s.url}</a>`);
+                } else if(m === 'ip') {
+                    d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] ПРОВАЙДЕР: ${j.isp}<br>[+] IP: ${j.query}`;
                     document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
                     mapCont.style.display = "block";
+                } else if(m === 'crypto') {
+                    d.innerHTML += `<br>[+] БАЛАНС КОШЕЛЬКА: <span style="color:yellow">${j.balance}</span><br>[+] ВСЕГО ТРАНЗАКЦИЙ: ${j.txs}`;
                 } else {
-                    d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks || 'Ничего не найдено'}`;
+                    d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks}`;
                 }
-            } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ОШИБКА СЕТИ</span>`; }
+            } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ERROR: TARGET NOT FOUND</span>`; }
         }
     </script>
 </body>
