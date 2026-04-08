@@ -2,40 +2,64 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT v2.0</title>
+    <title>HYDRA OSINT v3.0 [MAPS EDITION]</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 20px; text-align: center; }
-        .terminal { border: 2px solid #ff003c; background: rgba(10,0,0,0.9); max-width: 700px; margin: auto; padding: 20px; box-shadow: 0 0 20px #ff003c; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 10px; text-align: center; }
+        .terminal { border: 2px solid #ff003c; background: rgba(10,0,0,0.9); max-width: 800px; margin: auto; padding: 20px; box-shadow: 0 0 30px #ff003c; }
         select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 10px; margin: 5px; outline: none; }
-        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; }
-        #display { text-align: left; height: 250px; overflow-y: auto; border-top: 1px solid #333; margin-top: 20px; padding: 10px; font-size: 13px; }
-        .h { color: #ff003c; font-weight: bold; }
+        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; width: 120px; transition: 0.3s; }
+        button:hover { background: #fff; color: #000; }
+        #display { text-align: left; height: auto; min-height: 200px; border-top: 1px solid #333; margin-top: 20px; padding: 10px; font-size: 13px; }
+        #map-container { margin-top: 15px; display: none; border: 1px solid #ff003c; }
+        img { max-width: 100%; height: auto; }
+        .h { color: #ff003c; font-weight: bold; font-size: 22px; text-shadow: 0 0 10px #ff003c; }
     </style>
 </head>
 <body>
     <div class="terminal">
-        <div class="h">☠️ HYDRA OSINT MONSTER v2.0 ☠️</div>
+        <div class="h">☠️ HYDRA OSINT MONSTER v3.0 ☠️</div>
+        <div style="margin-bottom:15px;">[ STATUS: SATELLITE LINK ACTIVE ]</div>
         <select id="mode">
-            <option value="ip">IP TRACER</option>
+            <option value="ip">GEOLOCATION (IP)</option>
             <option value="nick">SHERLOCK (NICK)</option>
             <option value="mail">MAIL BREACH</option>
         </select>
-        <input type="text" id="target" placeholder="Введите цель...">
+        <input type="text" id="target" placeholder="Введите цель..." style="width: 250px;">
         <button onclick="run()">EXECUTE</button>
-        <div id="display">> SYSTEM READY...</div>
+        
+        <div id="display">> [READY] Ожидание цели...</div>
+        <div id="map-container">
+            <img id="map-img" src="" alt="Target Map Location">
+        </div>
     </div>
     <script>
         async function run() {
             const m = document.getElementById('mode').value;
             const t = document.getElementById('target').value;
             const d = document.getElementById('display');
-            d.innerHTML += `<br><span style="color:#ff003c">> Starting ${m} scan...</span>`;
-            const r = await fetch(`/api/${m}?target=${t}`);
-            const j = await r.json();
-            if(m==='ip') d.innerHTML += `<br>[+] ${j.city}, ${j.country} [${j.isp}]`;
-            else if(m==='nick') j.found.forEach(s => d.innerHTML += `<br>[+] ${s.name}: ${s.url}`);
-            else d.innerHTML += `<br>[!] ${j.leaks} | RISK: ${j.risk}`;
-            d.scrollTop = d.scrollHeight;
+            const mapCont = document.getElementById('map-container');
+            const mapImg = document.getElementById('map-img');
+
+            if(!t) return;
+            d.innerHTML = `<span style="color:#ff003c">> INITIATING ${m.toUpperCase()} PROTOCOL...</span>`;
+            mapCont.style.display = "none";
+
+            try {
+                const r = await fetch(`/api/${m}?target=${t}`);
+                const j = await r.json();
+                
+                if(m==='ip' && j.status !== 'fail') {
+                    d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] СТРАНА: ${j.country}<br>[+] КООРДИНАТЫ: ${j.lat}, ${j.lon}`;
+                    // Добавляем карту через OpenStreetMap (бесплатно и без ключей)
+                    const zoom = 12;
+                    mapImg.src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=${zoom}&l=sat,skl`;
+                    mapCont.style.display = "block";
+                } else if(m==='nick') {
+                    j.found.forEach(s => d.innerHTML += `<br>[+] ${s.name}: <a href="${s.url}" target="_blank" style="color:yellow">${s.url}</a>`);
+                } else {
+                    d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks || 'Данные не найдены'}`;
+                }
+            } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ERROR: Connection Lost</span>`; }
         }
     </script>
 </body>
