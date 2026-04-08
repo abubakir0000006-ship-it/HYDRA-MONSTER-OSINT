@@ -6,134 +6,58 @@
     <style>
         :root { --p: #00ff41; --bg: #050505; --red: #ff3e3e; --glow: 0 0 10px rgba(0,255,65,0.7); }
         body { background: var(--bg); color: var(--p); font-family: 'Courier New', monospace; overflow: hidden; margin: 0; padding: 20px; }
-        
-        /* Эффект Scanline */
         body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 2px; background: rgba(0,255,65,0.1); animation: scanline 6s linear infinite; pointer-events: none; z-index: 100; }
         @keyframes scanline { 0% { top: -10px; } 100% { top: 100%; } }
-
-        /* Эффект Matrix на фоне */
         .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.1; }
-
         h2 { text-align: center; text-transform: uppercase; text-shadow: var(--glow); letter-spacing: 2px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        
         .card { border: 1px solid var(--p); padding: 15px; background: rgba(0,20,0,0.8); position: relative; box-shadow: var(--glow); transition: 0.3s; }
         .card:hover { box-shadow: 0 0 20px rgba(0,255,65,1); }
         .card-label { position: absolute; top: -10px; left: 10px; background: var(--bg); padding: 0 5px; color: var(--red); font-size: 11px; text-transform: uppercase; }
-        
         input { background: #000; border: 1px solid var(--p); color: var(--p); padding: 10px; width: calc(100% - 22px); margin-bottom: 10px; outline: none; }
-        input:focus { box-shadow: var(--glow); }
-        
         .btn { background: var(--p); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; text-transform: uppercase; }
         .btn:hover { background: #fff; transform: scale(1.02); }
-        .btn-phish { background: var(--red); color: #fff; box-shadow: 0 0 10px rgba(255,62,62,0.7); }
-        .btn-phish:hover { background: #fff; color: #ff3e3e; }
-        
-        #console { background: #000; border: 1px solid #333; height: 200px; overflow-y: auto; padding: 10px; font-size: 13px; color: #fff; margin-top: 20px; position: relative; }
-        #console::after { content: ""; position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,0)); pointer-events: none; }
-        .cons-line { border-bottom: 1px solid #222; padding: 5px 0; }
-        
+        #console { background: #000; border: 1px solid #333; height: 150px; overflow-y: auto; padding: 10px; font-size: 12px; color: #fff; margin-top: 20px; }
         #auth-ui { max-width: 400px; margin: 100px auto 0; text-align: center; }
         #main-ui { display: none; }
-        
-        #admin-panel { display: none; margin-top: 20px; border-color: gold; box-shadow: 0 0 15px rgba(255,215,0,0.5); }
-        #admin-panel button { background: gold; color: #000; border: 2px solid gold; }
-        #admin-data { margin-top: 10px; font-size: 12px; max-height: 150px; overflow-y: auto; }
     </style>
 </head>
 <body>
     <div class="matrix-bg" id="mx"></div>
     <div class="container">
         <h2>HYDRA OPERATOR TERMINAL v2.0</h2>
-
         <div id="auth-ui" class="card">
             <span class="card-label">// SECURE ACCESS</span>
             <input id="user" placeholder="OPERATOR ID">
             <input id="pass" type="password" placeholder="ACCESS KEY">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" onclick="auth('login')">INITIALIZE LOGIN</button>
-                <button class="btn" onclick="auth('register')" style="background:none; color:var(--p); border:1px solid var(--p);">REGISTER</button>
-            </div>
+            <button class="btn" onclick="auth('login')">INITIALIZE LOGIN</button>
         </div>
-
         <div id="main-ui">
             <div class="grid">
-                <div class="card"><span class="card-label">// ШЕРЛОК (NICKNAME)</span><input id="t-nick" placeholder="Enter Nickname..."><button class="btn" onclick="run('nick')">EXECUTE</button></div>
-                <div class="card"><span class="card-label">// PHONE SCANNER (7xxx...)</span><input id="t-mail" placeholder="Enter Phone..."><button class="btn" onclick="run('mail')">SCAN</button></div>
-                <div class="card"><span class="card-label">// EMAIL DEEP SCAN</span><input id="t-email" placeholder="Enter Email..."><button class="btn" onclick="run('email')">DEEP SCAN</button></div>
-                <div class="card"><span class="card-label">// CAR PLATE CHECK (A000AA...)</span><input id="t-car" placeholder="Enter Plate..."><button class="btn" onclick="run('car')">CHECKPLATE</button></div>
-                <div class="card"><span class="card-label">// CRYPTO TRACKER (BTC)</span><input id="t-btc" placeholder="Enter Address..."><button class="btn" onclick="run('btc')">TRACE</button></div>
-                <div class="card"><span class="card-label">// IP ТРАССИРОВКА</span><input id="t-ip" placeholder="Enter IP..."><button class="btn" onclick="run('ip')">TRACE</button></div>
+                <div class="card"><span class="card-label">// NICKNAME</span><input id="t-nick"><button class="btn" onclick="run('nick')">EXECUTE</button></div>
+                <div class="card"><span class="card-label">// PHONE</span><input id="t-mail"><button class="btn" onclick="run('mail')">SCAN</button></div>
+                <div class="card"><span class="card-label">// EMAIL</span><input id="t-email"><button class="btn" onclick="run('email')">DEEP SCAN</button></div>
+                <div class="card"><span class="card-label">// CAR PLATE</span><input id="t-car"><button class="btn" onclick="run('car')">CHECK</button></div>
+                <div class="card"><span class="card-label">// BTC</span><input id="t-btc"><button class="btn" onclick="run('btc')">TRACE</button></div>
+                <div class="card"><span class="card-label">// IP</span><input id="t-ip"><button class="btn" onclick="run('ip')">TRACE</button></div>
             </div>
-            
-            <button class="btn btn-phish" onclick="genPhish()" style="width:100%; margin-top:20px;">[ !!! ] GENERATE INSTA-EXPLOIT LINK [ !!! ]</button>
-
+            <button class="btn" onclick="genPhish()" style="background:red;color:white;margin-top:20px;">GENERATE INSTA-EXPLOIT</button>
             <div id="console">> AWAITING COMMAND...</div>
-            
-            <div id="admin-panel" class="card">
-                <span class="card-label" style="color:gold;">// MASTER CONTROL</span>
-                <button class="btn" onclick="loadAdmin()">OPEN MASTER PANEL</button>
-                <div id="admin-data"></div>
-            </div>
         </div>
     </div>
-
     <script>
-        // Эффект Matrix на фоне
-        const c = document.getElementById('mx');
-        let ctx; if(c)ctx=c.getContext('2d');
-        if(c){c.height=window.innerHeight;c.width=window.innerWidth;}
-        const txt="01";const fZ=14;const col=c?Math.floor(c.width/fZ):0;const dp=[];
-        for(let x=0;x<col;x++)dp[x]=1;
-        function draw(){if(!ctx)return;ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,c.width,c.height);ctx.fillStyle="#0F0";ctx.font=fZ+"px Courier New";
-        for(let i=0;i<dp.length;i++){const t=txt.charAt(Math.floor(Math.random()*txt.length));ctx.fillText(t,i*fZ,dp[i]*fZ);if(dp[i]*fZ>c.height&&Math.random()>0.975)dp[i]=0;dp[i]++;}}
-        if(c)setInterval(draw,30);
-
         async function auth(type) {
             const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-            const r = await fetch(`/api/${type}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p})});
+            const r = await fetch(`/api/login`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p})});
             const j = await r.json();
             if(j.status==='success') {
-                if(type==='login') {
-                    document.getElementById('auth-ui').style.display = 'none';
-                    document.getElementById('main-ui').style.display = 'block';
-                    if(u === 'abupaay') document.getElementById('admin-panel').style.display = 'block';
-                    print("ACCESS GRANTED. INITIALIZING SYSTEMS...");
-                } else alert('REGISTRATION SUCCESSFUL!');
-            } else alert(j.message || 'ACCESS DENIED');
+                document.getElementById('auth-ui').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'block';
+                if(u === 'abupaay') alert('ADMIN ACCESS GRANTED');
+            } else alert('DENIED');
         }
-
-        async function run(mod) {
-            const val = document.getElementById('t-'+mod).value;
-            if(!val) return;
-            print(`INITIATING ${mod.toUpperCase()} MODULE FOR [${val}]...`);
-            const r = await fetch(`/api/scan?mod=${mod}&target=${val}`);
-            const j = await r.json();
-            if(j.status==='Success') {
-                print(`FOUND: ${j.found.map(i=>i.name).join(", ")}`);
-            } else { print(`ERROR: ${j.message}`); }
-        }
-
-        function genPhish() {
-            const link = window.location.origin + '/login/insta/' + Math.floor(Math.random()*1000);
-            navigator.clipboard.writeText(link);
-            print(`[!!!] EXPLOIT LINK GENERATED & COPIED: ${link}`);
-        }
-
-        function print(msg) {
-            const co = document.getElementById('console');
-            co.innerHTML += `<div class="cons-line">[${new Date().toLocaleTimeString()}] ${msg}</div>`;
-            co.scrollTop = co.scrollHeight;
-        }
-
-        async function loadAdmin() {
-            const r = await fetch('/api/admin/users');
-            const j = await r.json();
-            const box = document.getElementById('admin-data');
-            box.style.display = 'block';
-            box.innerHTML = j.map(u => `<div style="border-bottom:1px solid #444;"><b>${u.u}</b>:${u.p} | ACT: [${u.act.join(",")}]</div>`).join("");
-            print("MASTER DATA LOADED.");
-        }
+        function run(m){ document.getElementById('console').innerHTML += `<div>[${m.toUpperCase()}] SCANNING...</div>`; }
+        function genPhish(){ alert('COPIED!'); }
     </script>
 </body>
 </html>
