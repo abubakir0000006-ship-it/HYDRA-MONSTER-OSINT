@@ -2,62 +2,145 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT v5.0 [GOD MODE]</title>
+    <title>HYDRA OSINT v6.0 [HACKER EDITION]</title>
     <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 10px; }
-        .terminal { border: 2px solid #ff003c; background: rgba(5,0,0,0.95); max-width: 900px; margin: 20px auto; padding: 25px; box-shadow: 0 0 50px #ff003c; }
-        .h { color: #ff003c; font-size: 28px; font-weight: bold; text-align: center; text-shadow: 0 0 15px #ff003c; margin-bottom: 10px; }
-        .nav { text-align: center; margin-bottom: 20px; }
-        select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 12px; margin: 5px; outline: none; }
-        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; width: 140px; transition: 0.3s; }
-        button:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
-        #display { background: #050505; border-top: 1px solid #333; padding: 20px; min-height: 300px; text-align: left; line-height: 1.6; }
-        .link-item { display: block; padding: 8px; border-bottom: 1px solid #111; text-decoration: none; color: #0f0; }
-        .link-item:hover { background: #1a0004; color: #ff003c; }
-        #map-container { margin-top: 15px; display: none; border: 2px solid #ff003c; }
+        :root { --neon: #ff003c; --bg: #000; --text: #0f0; --dim: #330006; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', monospace; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        /* Хакерский фон с анимацией Матрицы */
+        canvas { position: absolute; top:0; left:0; width:100%; height:100%; z-index: -1; opacity: 0.2; }
+
+        /* Экран Входа */
+        #intro { text-align: center; }
+        .glitch { font-size: 50px; color: var(--neon); font-weight: bold; text-transform: uppercase; letter-spacing: 5px; text-shadow: 0 0 20px var(--neon); animation: glitch 1s infinite; }
+        .start-btn { background: transparent; border: 3px solid var(--neon); color: var(--neon); padding: 15px 40px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 30px; transition: 0.3s; box-shadow: 0 0 15px var(--neon); }
+        .start-btn:hover { background: var(--neon); color: #fff; box-shadow: 0 0 30px #fff; }
+
+        /* Главный Терминал */
+        #main-terminal { display: none; width: 90%; max-width: 900px; border: 2px solid var(--neon); background: rgba(0,0,0,0.9); padding: 30px; box-shadow: 0 0 40px var(--dim); }
+        .h { color: var(--neon); font-size: 30px; font-weight: bold; text-align: center; margin-bottom: 20px; text-shadow: 0 0 10px var(--neon); }
+        
+        /* Панель функций (Отдельные кнопки) */
+        .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .tool-card { background: #111; border: 1px solid #333; padding: 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .tool-card:hover, .tool-card.active { border-color: var(--neon); background: #1a0004; box-shadow: 0 0 15px var(--neon); }
+        .tool-icon { font-size: 30px; color: var(--neon); margin-bottom: 10px; }
+        .tool-name { font-weight: bold; color: var(--text); }
+
+        /* Ввод и Вывод */
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { background: #111; border: 1px solid #333; color: var(--text); padding: 15px; flex-grow: 1; outline: none; border-radius: 3px; }
+        input:focus { border-color: var(--neon); }
+        button#exec-btn { background: var(--neon); color: #fff; border: none; padding: 15px 30px; font-weight: bold; cursor: pointer; }
+        button#exec-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+
+        #display { background: #050505; border: 1px solid #222; padding: 20px; min-height: 200px; text-align: left; }
+        .link-item { display: block; color: var(--text); text-decoration: none; padding: 5px; border-bottom: 1px solid #111; }
+        .link-item:hover { color: yellow; background: #111; }
+        #map-container { margin-top: 15px; display: none; border: 2px solid var(--neon); max-height: 300px; overflow: hidden; }
+
+        @keyframes glitch { 0% { text-shadow: 2px 0 red, -2px 0 blue; } 50% { text-shadow: -2px 0 red, 2px 0 blue; } 100% { text-shadow: 2px 0 red, -2px 0 blue; } }
     </style>
 </head>
 <body>
-    <div class="terminal">
-        <div class="h">☠️ HYDRA OSINT MONSTER v5.0 ☠️</div>
-        <div class="nav">
-            <select id="mode">
-                <option value="nick">USER SEARCH (SHERLOCK)</option>
-                <option value="ip">GEOLOCATION (IP)</option>
-                <option value="crypto">CRYPTO CHECKER (BTC)</option>
-                <option value="mail">DATA BREACH (EMAIL)</option>
-            </select>
-            <input type="text" id="target" placeholder="Введите цель..." style="width: 300px;">
-            <button onclick="run()">EXECUTE</button>
+
+<canvas id="matrix"></canvas>
+
+<div id="intro">
+    <div class="glitch">HYDRA_OSINT</div>
+    <div style="color:#666;">> System Ready. Connection: Secure.</div>
+    <button class="start-btn" onclick="startSystem()">START OSINT PROTOCOL</button>
+</div>
+
+<div id="main-terminal">
+    <div class="h">☠️ HYDRA MULTI-HEAD MONSTER ☠️</div>
+    
+    <div class="tools-grid">
+        <div class="tool-card active" onclick="setMode('nick', this)">
+            <div class="tool-icon">👤</div>
+            <div class="tool-name">USER SEARCH<br>(SHERLOCK)</div>
         </div>
-        <div id="display">> SYSTEM READY. STANDING BY...</div>
-        <div id="map-container"><img id="map-img" src="" style="width:100%;"></div>
+        <div class="tool-card" onclick="setMode('ip', this)">
+            <div class="tool-icon">🌐</div>
+            <div class="tool-name">GEOLOCATION<br>(IP TRACER)</div>
+        </div>
+        <div class="tool-card" onclick="setMode('crypto', this)">
+            <div class="tool-icon">💰</div>
+            <div class="tool-name">CRYPTO CHECK<br>(BTC)</div>
+        </div>
+        <div class="tool-card" onclick="setMode('mail', this)">
+            <div class="tool-icon">📧</div>
+            <div class="tool-name">DATA BREACH<br>(EMAIL)</div>
+        </div>
     </div>
-    <script>
-        async function run() {
-            const m = document.getElementById('mode').value;
-            const t = document.getElementById('target').value;
-            const d = document.getElementById('display');
-            const mapCont = document.getElementById('map-container');
-            if(!t) return;
-            d.innerHTML = `<span style="color:#ff003c">> LOADING MODULE: ${m.toUpperCase()}...</span><br>`;
-            mapCont.style.display = "none";
-            try {
-                const r = await fetch(`/api/${m}?target=${t}`);
-                const j = await r.json();
-                if(m === 'nick') {
-                    j.found.forEach(s => d.innerHTML += `<a href="${s.url}" target="_blank" class="link-item">🔗 ${s.name}: ${s.url}</a>`);
-                } else if(m === 'ip') {
-                    d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] ПРОВАЙДЕР: ${j.isp}<br>[+] IP: ${j.query}`;
-                    document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
-                    mapCont.style.display = "block";
-                } else if(m === 'crypto') {
-                    d.innerHTML += `<br>[+] БАЛАНС КОШЕЛЬКА: <span style="color:yellow">${j.balance}</span><br>[+] ВСЕГО ТРАНЗАКЦИЙ: ${j.txs}`;
-                } else {
-                    d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks}`;
-                }
-            } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ERROR: TARGET NOT FOUND</span>`; }
+
+    <div class="input-group">
+        <input type="text" id="target" placeholder="Введите цель (Nick, IP, BTC Address, Email)...">
+        <button id="exec-btn" onclick="run()">EXECUTE</button>
+    </div>
+
+    <div id="display">> SYSTEM ONLINE. STANDING BY...</div>
+    <div id="map-container"><img id="map-img" src="" style="width:100%;"></div>
+</div>
+
+<script>
+    let currentMode = 'nick';
+
+    function startSystem() {
+        document.getElementById('intro').style.display = 'none';
+        document.getElementById('main-terminal').style.display = 'block';
+    }
+
+    function setMode(mode, element) {
+        currentMode = mode;
+        document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById('target').placeholder = `Введите цель для ${mode.toUpperCase()}...`;
+    }
+
+    async function run() {
+        const t = document.getElementById('target').value;
+        const d = document.getElementById('display');
+        const mapCont = document.getElementById('map-container');
+        if(!t) return;
+        d.innerHTML = `<span style="color:#ff003c">> INITING ${currentMode.toUpperCase()} SCAN ON: ${t}...</span><br>`;
+        mapCont.style.display = "none";
+        try {
+            const r = await fetch(`/api/${currentMode}?target=${t}`);
+            const j = await r.json();
+            if(currentMode === 'nick') {
+                j.found.forEach(s => d.innerHTML += `<a href="${s.url}" target="_blank" class="link-item">🔗 ${s.name}: ${s.url}</a>`);
+            } else if(currentMode === 'ip') {
+                d.innerHTML += `<br>[+] ГОРОД: ${j.city}<br>[+] ПРОВАЙДЕР: ${j.isp}`;
+                document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
+                mapCont.style.display = "block";
+            } else if(currentMode === 'crypto') {
+                d.innerHTML += `<br>[+] БАЛАНС: <span style="color:yellow">${j.balance}</span><br>[+] ТРАНЗАКЦИИ: ${j.txs}`;
+            } else { d.innerHTML += `<br>[!] РЕЗУЛЬТАТ: ${j.leaks}`; }
+        } catch(e) { d.innerHTML += `<br><span style="color:red">[!] ERROR</span>`; }
+    }
+
+    // Матрица на фоне
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789☠️🌐';
+    const drops = [];
+    for (let i = 0; i < canvas.width / 20; i++) drops[i] = 1;
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#0f0';
+        for (let i = 0; i < drops.length; i++) {
+            const text = letters[Math.floor(Math.random() * letters.length)];
+            ctx.fillText(text, i * 20, drops[i] * 20);
+            if (drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
         }
-    </script>
+    }
+    setInterval(drawMatrix, 50);
+</script>
+
 </body>
 </html>
