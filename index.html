@@ -107,7 +107,7 @@
                 j.found.forEach(s => disp.innerHTML += `<br> <a href="${s.url}" target="_blank" class="link-res">🔗 ${s.name}</a>`);
             } else if(mode === 'crypto') {
                 disp.innerHTML += `<br> "Balance": "${j.balance} BTC"`;
-            } else { disp.innerHTML += `<br> "Status": "Success", "Data": "Leaks found"`; }
+            } else { j.found.forEach(s => disp.innerHTML += `<br> <a href="${s.url}" target="_blank" class="link-res">🔗 ${s.name}: ${s.url}</a>`); }
             disp.innerHTML += `<br>}`;
         } catch(e) { disp.innerHTML += `<br> "Error": "Not found"<br>}`; }
     }
