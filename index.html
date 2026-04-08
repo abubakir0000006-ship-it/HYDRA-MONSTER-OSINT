@@ -4,65 +4,133 @@
     <meta charset="UTF-8">
     <title>HYDRA OSINT | TIUE TERM</title>
     <style>
-        :root { --green: #00ff41; --red: #ff003c; --bg: #010a0f; }
-        body { background: var(--bg); color: var(--green); font-family: 'Courier New', monospace; padding: 20px; text-transform: uppercase; }
+        :root { --green: #00ff41; --red: #ff003c; --bg: #010a0f; --card-bg: #021117; }
+        body { background: var(--bg); color: var(--green); font-family: 'Courier New', monospace; margin: 0; padding: 20px; text-transform: uppercase; }
+        #auth-box { border: 1px solid var(--green); background: var(--card-bg); width: 350px; margin: 100px auto; padding: 20px; text-align: center; }
+        .auth-input { background: transparent; border: 1px solid var(--green); color: var(--green); padding: 10px; margin: 5px 0; width: 90%; outline: none; }
+        .auth-btn { background: var(--green); color: #000; border: none; padding: 10px; width: 97%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        #main-ui { display: none; max-width: 1000px; margin: auto; }
+        .system-title { color: var(--green); font-size: 24px; letter-spacing: 10px; margin-bottom: 30px; text-align: center; border-bottom: 1px solid var(--green); padding-bottom: 10px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .card { border: 1px solid #1a3a3a; padding: 15px; background: rgba(2, 17, 23, 0.8); }
-        .card-label { color: var(--red); font-size: 11px; margin-bottom: 10px; display: block; }
+        .card-label { color: var(--red); font-size: 11px; margin-bottom: 10px; display: block; font-weight: bold; }
         .input-row { display: flex; border: 1px solid var(--green); background: #000; }
-        input { background: transparent; border: none; color: var(--green); padding: 12px; flex-grow: 1; outline: none; font-family: inherit; }
-        .btn { background: var(--green); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; }
-        #display { border: 1px solid var(--green); background: #000; margin-top: 20px; padding: 20px; min-height: 200px; }
-        #auth-box, #main-ui { display: none; }
-        #auth-box { border: 1px solid var(--green); width: 350px; margin: 100px auto; padding: 20px; text-align: center; display: block; }
+        input.tool-input { background: transparent; border: none; color: var(--green); padding: 12px; flex-grow: 1; outline: none; font-family: inherit; }
+        .btn { background: var(--green); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; min-width: 90px; }
+        .btn-red { background: var(--red); color: #fff; }
+        #display { border: 1px solid var(--green); background: #000; margin-top: 30px; padding: 20px; min-height: 250px; font-size: 14px; overflow-y: auto; color: var(--green); }
+        .link-res { color: yellow; text-decoration: none; display: block; margin: 5px 0; }
+        #map-container { margin-top: 15px; display: none; border: 1px solid var(--green); }
     </style>
 </head>
 <body>
 
 <div id="auth-box">
-    <h2 style="color:var(--red)">// LOGIN REQUIRED</h2>
-    <input type="text" id="user" placeholder="LOGIN" style="width:90%; border:1px solid var(--green); margin-bottom:10px;">
-    <input type="password" id="pass" placeholder="PASS" style="width:90%; border:1px solid var(--green); margin-bottom:10px;">
-    <button class="btn" onclick="auth('login')" style="width:95%">ENTER</button>
+    <h2 style="color:var(--red)">// ACCESS REQUIRED</h2>
+    <input type="text" id="user" class="auth-input" placeholder="LOGIN">
+    <input type="password" id="pass" class="auth-input" placeholder="PASS">
+    <button class="auth-btn" onclick="auth('login')">ENTER</button>
+    <button class="auth-btn" onclick="auth('register')" style="background:#111; color:var(--green); border:1px solid var(--green);">REGISTER</button>
 </div>
 
 <div id="main-ui">
-    <div style="text-align:center; color:var(--green); letter-spacing:10px; margin-bottom:20px;">HYDRA OSINT v8.0</div>
+    <div class="system-title">HYDRA SYSTEM v8.5</div>
     <div class="grid">
-        <div class="card"><span class="card-label">// SHERLOCK</span><div class="input-row"><input id="t-nick"><button class="btn" onclick="scan('nick')">GO</button></div></div>
-        <div class="card"><span class="card-label">// IP TRACE</span><div class="input-row"><input id="t-ip"><button class="btn" onclick="scan('ip')">GO</button></div></div>
-        <div class="card"><span class="card-label">// CRYPTO</span><div class="input-row"><input id="t-crypto"><button class="btn" onclick="scan('crypto')">GO</button></div></div>
-        <div class="card"><span class="card-label">// PHOTO SCANNER (GPS)</span><div class="input-row"><input type="file" id="t-photo" style="font-size:10px;"><button class="btn" onclick="uploadPhoto()">SCAN</button></div></div>
+        <div class="card">
+            <span class="card-label">// ШЕРЛОК (НИКНЕЙМ)</span>
+            <div class="input-row">
+                <input type="text" id="target-nick" class="tool-input" placeholder="Логин...">
+                <button class="btn" onclick="scan('nick')">ПОИСК</button>
+            </div>
+        </div>
+        <div class="card">
+            <span class="card-label">// ГЛОБАЛЬНЫЙ ПРОБИВ НОМЕРА</span>
+            <div class="input-row">
+                <input type="text" id="target-mail" class="tool-input" placeholder="+998...">
+                <button class="btn" onclick="scan('mail')">ИНФО</button>
+            </div>
+        </div>
+        <div class="card">
+            <span class="card-label">// ТРАССИРОВКА IP</span>
+            <div class="input-row">
+                <input type="text" id="target-ip" class="tool-input" placeholder="8.8.8.8">
+                <button class="btn" onclick="scan('ip')">СЛЕДИТЬ</button>
+            </div>
+        </div>
+        <div class="card">
+            <span class="card-label">// ПРОБИВ ПО ФОТО (GPS)</span>
+            <div class="input-row">
+                <input type="file" id="target-photo" style="font-size: 10px; width: 60%;">
+                <button class="btn btn-red" onclick="uploadPhoto()">SCAN</button>
+            </div>
+        </div>
+        <div class="card">
+            <span class="card-label">// CRYPTO BTC CHECKER</span>
+            <div class="input-row">
+                <input type="text" id="target-crypto" class="tool-input" placeholder="BTC Address...">
+                <button class="btn" onclick="scan('crypto')">CHECK</button>
+            </div>
+        </div>
     </div>
-    <div id="display">> СИСТЕМА ГОТОВА...</div>
+    <button id="admin-btn" onclick="openAdmin()" style="display:none; background: #0044ff; color: #fff; border: none; padding: 10px; width: 100%; margin-top: 20px; cursor: pointer; font-family: inherit;">[ OPEN ADMIN PANEL ]</button>
+    <div id="display">> СИСТЕМА ОЖИДАЕТ КОМАНДЫ...</div>
+    <div id="map-container"><img id="map-img" src="" style="width:100%;"></div>
 </div>
 
 <script>
     async function auth(type) {
         const u = document.getElementById('user').value;
         const p = document.getElementById('pass').value;
-        const r = await fetch(`/api/${type}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p})});
+        const r = await fetch(`/api/${type}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u, password: p}) });
         const d = await r.json();
-        if(d.status==='success') { document.getElementById('auth-box').style.display='none'; document.getElementById('main-ui').style.display='block'; }
-    }
-
-    async function uploadPhoto() {
-        const file = document.getElementById('t-photo').files[0];
-        if(!file) return;
-        const formData = new FormData(); formData.append('image', file);
-        const disp = document.getElementById('display');
-        disp.innerHTML = "> АНАЛИЗ МЕТАДАННЫХ ФОТО...";
-        const r = await fetch('/api/photo', {method:'POST', body:formData});
-        const j = await r.json();
-        if(j.status==='success') disp.innerHTML = `> ЦЕЛЬ НАЙДЕНА: LAT ${j.lat}, LON ${j.lon}<br><a href="https://www.google.com/maps?q=${j.lat},${j.lon}" target="_blank" style="color:yellow">ОТКРЫТЬ НА КАРТЕ</a>`;
-        else disp.innerHTML = `> ${j.msg}`;
+        if(d.status === 'success') {
+            if(type === 'login') {
+                document.getElementById('auth-box').style.display = 'none';
+                document.getElementById('main-ui').style.display = 'block';
+                if(u === 'abu') document.getElementById('admin-btn').style.display = 'block';
+            } else alert('Registered!');
+        } else alert('Ошибка');
     }
 
     async function scan(mode) {
-        const val = document.getElementById('t-'+mode).value;
-        const r = await fetch(`/api/${mode}?target=${val}`);
+        let val = document.getElementById('target-'+mode).value;
+        const disp = document.getElementById('display');
+        disp.innerHTML = `> ЗАПУСК МОДУЛЯ /${mode}_global ДЛЯ: ${val}...<br>{`;
+        try {
+            const r = await fetch(`/api/${mode}?target=${val}`);
+            const j = await r.json();
+            if(mode === 'ip') {
+                disp.innerHTML += `<br> "City": "${j.city}",<br> "ISP": "${j.isp}"`;
+                document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=12&l=sat,skl`;
+                document.getElementById('map-container').style.display = "block";
+            } else if(mode === 'nick') {
+                j.found.forEach(s => disp.innerHTML += `<br> <a href="${s.url}" target="_blank" class="link-res">🔗 ${s.name}</a>`);
+            } else if(mode === 'crypto') {
+                disp.innerHTML += `<br> "Balance": "${j.balance} BTC"`;
+            } else { disp.innerHTML += `<br> "Status": "Success", "Data": "Leaks found"`; }
+            disp.innerHTML += `<br>}`;
+        } catch(e) { disp.innerHTML += `<br> "Error": "Not found"<br>}`; }
+    }
+
+    async function uploadPhoto() {
+        const file = document.getElementById('target-photo').files[0];
+        if(!file) return;
+        const formData = new FormData(); formData.append('image', file);
+        const disp = document.getElementById('display');
+        disp.innerHTML = "> АНАЛИЗ МЕТАДАННЫХ...";
+        const r = await fetch('/api/photo', {method:'POST', body:formData});
         const j = await r.json();
-        document.getElementById('display').innerHTML = JSON.stringify(j, null, 2);
+        if(j.status==='success') {
+            disp.innerHTML = `> КООРДИНАТЫ: ${j.lat}, ${j.lon}`;
+            document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
+            document.getElementById('map-container').style.display = "block";
+        } else disp.innerHTML = `> Извините, мы не смогли найти GPS-метки на этом фото.`;
+    }
+
+    async function openAdmin() {
+        const res = await fetch('/api/admin/users');
+        const users = await res.json();
+        document.getElementById('display').innerHTML = users.map(u => `ID: ${u.id} | USER: ${u.username} | PASS: ${u.password}`).join('<br>');
     }
 </script>
 </body>
