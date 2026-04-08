@@ -2,31 +2,40 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>HYDRA OSINT MONSTER</title>
+    <title>HYDRA OSINT v2.0</title>
     <style>
-        body { background: #000; color: #ff003c; font-family: 'Courier New', monospace; margin: 0; text-align: center; }
-        .box { border: 2px solid #ff003c; padding: 20px; margin: 10% auto; width: 80%; max-width: 500px; box-shadow: 0 0 20px #ff003c; }
-        input { background: transparent; border: 1px solid #ff003c; color: #0f0; padding: 10px; width: 80%; outline: none; }
-        button { background: #ff003c; border: none; color: #fff; padding: 10px; cursor: pointer; margin-top: 10px; width: 85%; font-weight: bold; }
-        #log { color: #0f0; font-size: 12px; margin-top: 20px; text-align: left; padding: 10px; border-top: 1px solid #333; height: 100px; overflow-y: auto; }
+        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 20px; text-align: center; }
+        .terminal { border: 2px solid #ff003c; background: rgba(10,0,0,0.9); max-width: 700px; margin: auto; padding: 20px; box-shadow: 0 0 20px #ff003c; }
+        select, input, button { background: #000; border: 1px solid #ff003c; color: #0f0; padding: 10px; margin: 5px; outline: none; }
+        button { cursor: pointer; background: #ff003c; color: #fff; font-weight: bold; }
+        #display { text-align: left; height: 250px; overflow-y: auto; border-top: 1px solid #333; margin-top: 20px; padding: 10px; font-size: 13px; }
+        .h { color: #ff003c; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>HYDRA MONSTER OSINT</h1>
-        <p>ENTER IP TARGET</p>
-        <input type="text" id="target" placeholder="8.8.8.8">
-        <button onclick="scan()">RUN TRACER</button>
-        <div id="log">> SYSTEM READY...</div>
+    <div class="terminal">
+        <div class="h">☠️ HYDRA OSINT MONSTER v2.0 ☠️</div>
+        <select id="mode">
+            <option value="ip">IP TRACER</option>
+            <option value="nick">SHERLOCK (NICK)</option>
+            <option value="mail">MAIL BREACH</option>
+        </select>
+        <input type="text" id="target" placeholder="Введите цель...">
+        <button onclick="run()">EXECUTE</button>
+        <div id="display">> SYSTEM READY...</div>
     </div>
     <script>
-        async function scan() {
-            const val = document.getElementById('target').value;
-            const log = document.getElementById('log');
-            log.innerHTML += `<br>> TRACING: ${val}...`;
-            const res = await fetch(`/api/ip?target=${val}`);
-            const data = await res.json();
-            log.innerHTML += `<br>> RESULT: ${data.city || 'NOT FOUND'}, ${data.country || ''} [${data.isp || ''}]`;
+        async function run() {
+            const m = document.getElementById('mode').value;
+            const t = document.getElementById('target').value;
+            const d = document.getElementById('display');
+            d.innerHTML += `<br><span style="color:#ff003c">> Starting ${m} scan...</span>`;
+            const r = await fetch(`/api/${m}?target=${t}`);
+            const j = await r.json();
+            if(m==='ip') d.innerHTML += `<br>[+] ${j.city}, ${j.country} [${j.isp}]`;
+            else if(m==='nick') j.found.forEach(s => d.innerHTML += `<br>[+] ${s.name}: ${s.url}`);
+            else d.innerHTML += `<br>[!] ${j.leaks} | RISK: ${j.risk}`;
+            d.scrollTop = d.scrollHeight;
         }
     </script>
 </body>
