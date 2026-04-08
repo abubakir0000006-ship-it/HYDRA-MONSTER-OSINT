@@ -19,7 +19,13 @@
         .btn { background: var(--green); color: #000; border: none; padding: 10px 20px; cursor: pointer; font-weight: bold; min-width: 90px; }
         .btn-red { background: var(--red); color: #fff; }
         #display { border: 1px solid var(--green); background: #000; margin-top: 30px; padding: 20px; min-height: 250px; font-size: 14px; overflow-y: auto; color: var(--green); }
-        .link-res { color: yellow; text-decoration: none; display: block; margin: 5px 0; }
+        
+        /* Стиль ссылок с кнопкой копирования */
+        .res-item { display: flex; align-items: center; justify-content: space-between; background: #021117; margin: 5px 0; padding: 5px 10px; border-left: 2px solid var(--red); }
+        .link-res { color: yellow; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70%; }
+        .copy-btn { background: #333; color: #fff; border: 1px solid var(--green); font-size: 10px; padding: 2px 5px; cursor: pointer; }
+        .copy-btn:active { background: var(--green); color: #000; }
+
         #map-container { margin-top: 15px; display: none; border: 1px solid var(--green); }
     </style>
 </head>
@@ -34,7 +40,7 @@
 </div>
 
 <div id="main-ui">
-    <div class="system-title">HYDRA SYSTEM v8.5</div>
+    <div class="system-title">HYDRA SYSTEM v9.0</div>
     <div class="grid">
         <div class="card">
             <span class="card-label">// ШЕРЛОК (НИКНЕЙМ)</span>
@@ -72,12 +78,17 @@
             </div>
         </div>
     </div>
-    <button id="admin-btn" onclick="openAdmin()" style="display:none; background: #0044ff; color: #fff; border: none; padding: 10px; width: 100%; margin-top: 20px; cursor: pointer; font-family: inherit;">[ OPEN ADMIN PANEL ]</button>
+    <button id="admin-btn" onclick="openAdmin()" style="display:none; background: #0044ff; color: #fff; border: none; padding: 10px; width: 100%; margin-top: 20px; cursor: pointer; font-family: inherit;">[ OPEN MASTER ADMIN PANEL ]</button>
     <div id="display">> СИСТЕМА ОЖИДАЕТ КОМАНДЫ...</div>
     <div id="map-container"><img id="map-img" src="" style="width:100%;"></div>
 </div>
 
 <script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text);
+        alert('Copied: ' + text);
+    }
+
     async function auth(type) {
         const u = document.getElementById('user').value;
         const p = document.getElementById('pass').value;
@@ -89,27 +100,28 @@
                 document.getElementById('main-ui').style.display = 'block';
                 if(u === 'abu') document.getElementById('admin-btn').style.display = 'block';
             } else alert('Registered!');
-        } else alert('Ошибка');
+        } else alert(d.message || 'Ошибка');
     }
 
     async function scan(mode) {
         let val = document.getElementById('target-'+mode).value;
         const disp = document.getElementById('display');
-        disp.innerHTML = `> ЗАПУСК МОДУЛЯ /${mode}_global ДЛЯ: ${val}...<br>{`;
+        disp.innerHTML = `> ЗАПУСК МОДУЛЯ /${mode}_global...<br>`;
         try {
             const r = await fetch(`/api/${mode}?target=${val}`);
             const j = await r.json();
             if(mode === 'ip') {
-                disp.innerHTML += `<br> "City": "${j.city}",<br> "ISP": "${j.isp}"`;
+                disp.innerHTML += `<div class="res-item"><span>CITY: ${j.city}</span><button class="copy-btn" onclick="copyToClipboard('${j.city}')">COPY</button></div>`;
                 document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=12&l=sat,skl`;
                 document.getElementById('map-container').style.display = "block";
-            } else if(mode === 'nick') {
-                j.found.forEach(s => disp.innerHTML += `<br> <a href="${s.url}" target="_blank" class="link-res">🔗 ${s.name}</a>`);
+            } else if(mode === 'nick' || mode === 'mail') {
+                j.found.forEach(s => {
+                    disp.innerHTML += `<div class="res-item"><a href="${s.url}" target="_blank" class="link-res">🔗 ${s.name}</a><button class="copy-btn" onclick="copyToClipboard('${s.url}')">COPY</button></div>`;
+                });
             } else if(mode === 'crypto') {
-                disp.innerHTML += `<br> "Balance": "${j.balance} BTC"`;
-            } else { j.found.forEach(s => disp.innerHTML += `<br> <a href="${s.url}" target="_blank" class="link-res">🔗 ${s.name}: ${s.url}</a>`); }
-            disp.innerHTML += `<br>}`;
-        } catch(e) { disp.innerHTML += `<br> "Error": "Not found"<br>}`; }
+                disp.innerHTML += `<div class="res-item"><span>BALANCE: ${j.balance} BTC</span><button class="copy-btn" onclick="copyToClipboard('${j.balance}')">COPY</button></div>`;
+            }
+        } catch(e) { disp.innerHTML += `> ОШИБКА ПОИСКА`; }
     }
 
     async function uploadPhoto() {
@@ -121,16 +133,17 @@
         const r = await fetch('/api/photo', {method:'POST', body:formData});
         const j = await r.json();
         if(j.status==='success') {
-            disp.innerHTML = `> КООРДИНАТЫ: ${j.lat}, ${j.lon}`;
+            const coords = `${j.lat}, ${j.lon}`;
+            disp.innerHTML = `> КООРДИНАТЫ: ${coords} <button class="copy-btn" onclick="copyToClipboard('${coords}')">COPY GPS</button>`;
             document.getElementById('map-img').src = `https://static-maps.yandex.ru/1.x/?ll=${j.lon},${j.lat}&size=600,300&z=13&l=sat,skl`;
             document.getElementById('map-container').style.display = "block";
-        } else disp.innerHTML = `> Извините, мы не смогли найти GPS-метки на этом фото.`;
+        } else disp.innerHTML = `> GPS МЕТКИ НЕ НАЙДЕНЫ`;
     }
 
     async function openAdmin() {
         const res = await fetch('/api/admin/users');
         const users = await res.json();
-        document.getElementById('display').innerHTML = users.map(u => `ID: ${u.id} | USER: ${u.username} | PASS: ${u.password}`).join('<br>');
+        document.getElementById('display').innerHTML = users.map(u => `<div class="res-item"><span>${u.username}:${u.password}</span><button class="copy-btn" onclick="copyToClipboard('${u.username}:${u.password}')">COPY</button></div>`).join('');
     }
 </script>
 </body>
